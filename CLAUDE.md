@@ -104,7 +104,7 @@ When in doubt: remove, don't add.
 {
   startDate: string (ISO),
   raceDate: string (ISO) | null,
-  hasFixedRace: boolean,
+  hasRaceDate: boolean,
   prepWeeks: number,
   experience: 'beginner' | 'intermediate' | 'advanced',
   runFrequency: 3 | 4 | 5,
@@ -151,16 +151,18 @@ Marked as isStepBack: true in the output.
 
 ---
 
-## Onboarding Flow (8 steps)
+## Onboarding Flow (5 steps + welcome)
 0. Welcome — logo + "Get started" (no dots)
-1. Start date — "I'm starting today" or "I already started"
-2. Race date — "Yes I have a race date" or "No fixed race"
-3. Experience — Beginner / Intermediate / Advanced
-4. Frequency + day selection — 3/4/5 day pills + day picker on same screen
-5. Prep length — 8/12/16/20 week pills (16 = recommended)
-6. Profile — age/weight/height steppers + live HR zone preview
-7. Biological sex — Male / Female (no subtitles)
-8. Confirmation — summary card + "Start training →" (no Back)
+1a. Already started? — "No, I'm starting fresh" (auto-advance) or
+    "Yes, I already started" → date picker + Continue
+1b. Race date? — "Yes, I have a race date" → date picker + Continue
+    or "Not yet" → 8/12/16/20 week pills (16 = recommended, auto-advance on tap)
+2. Experience — Beginner / Intermediate / Advanced (auto-advance on tap)
+3. Set up your schedule — frequency pills (3/4/5, recommended=4) +
+   day picker + age stepper + sex pills (Male/Female)
+4. Confirmation — summary card + "Start training →" (no Back)
+
+Progress dots: 5 dots for steps 1a–4, hidden on welcome.
 
 ---
 

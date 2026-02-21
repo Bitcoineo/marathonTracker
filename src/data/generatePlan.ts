@@ -224,6 +224,8 @@ export function generateTrainingPlan(
   maxHR: number,
   runDaysPerWeek: number = 3,
   runDays: string[] = ['Mon', 'Thu', 'Sat'],
+  startDate?: string,
+  raceDate?: string,
 ): PlanResult {
   const clamped = Math.max(8, Math.min(24, prepWeeks))
   let warning: string | undefined
@@ -302,6 +304,64 @@ export function generateTrainingPlan(
   for (let i = 0; i < taperWeeks; i++) {
     const multiplier = computeMultiplier('taper', i, taperWeeks)
     buildWeek('taper', i, taperWeeks, roundHalf(peakKm * multiplier), false)
+  }
+
+  // Trim runs that fall on or after race date + apply shakeout protocol
+  if (startDate) {
+    const MS_PER_DAY = 86_400_000
+    const startObj = new Date(startDate)
+    const raceObj = raceDate
+      ? new Date(raceDate)
+      : new Date(startObj.getTime() + clamped * 7 * MS_PER_DAY)
+    const startDay = startObj.getDay()
+    const daysToMonday = (1 - startDay + 7) % 7
+    const firstMonday = new Date(startObj.getTime() + daysToMonday * MS_PER_DAY)
+    const shakeoutDate = new Date(raceObj.getTime() - 1 * MS_PER_DAY)
+    const restCutoff = new Date(raceObj.getTime() - 2 * MS_PER_DAY)
+
+    for (let w = weeks.length - 1; w >= 0; w--) {
+      const weekMonday = new Date(firstMonday.getTime() + w * 7 * MS_PER_DAY)
+      const kept: RunTarget[] = []
+      for (let i = 0; i < weeks[w].runs.length; i++) {
+        const dayOffset = DAY_OFFSETS[runDays[i]] ?? 1
+        const runDate = new Date(weekMonday.getTime() + (dayOffset - 1) * MS_PER_DAY)
+        if (runDate >= raceObj) continue
+        if (runDate.getTime() === shakeoutDate.getTime()) {
+          kept.push({
+            distance: 3, type: 'easy', isShakeout: true, dayOffset,
+            description: 'pre-race shakeout — easy jog, stay loose',
+            hrZone: hrZoneFor('easy', maxHR),
+          })
+          continue
+        }
+        if (runDate >= restCutoff) continue
+        kept.push({ ...weeks[w].runs[i], dayOffset })
+      }
+      if (kept.length === 0) {
+        weeks.splice(w, 1)
+      } else {
+        weeks[w].runs = kept
+        weeks[w].totalKm = roundHalf(kept.reduce((sum, r) => sum + r.distance, 0))
+      }
+    }
+
+    // Force-insert shakeout if not present in final week
+    if (weeks.length > 0) {
+      const lastWeek = weeks[weeks.length - 1]
+      if (!lastWeek.runs.some(r => r.isShakeout)) {
+        const lastWeekMonday = new Date(firstMonday.getTime() + (weeks.length - 1) * 7 * MS_PER_DAY)
+        const shakeoutDayOffset = Math.round((shakeoutDate.getTime() - lastWeekMonday.getTime()) / MS_PER_DAY) + 1
+        if (shakeoutDayOffset >= 1 && shakeoutDayOffset <= 7) {
+          lastWeek.runs.push({
+            distance: 3, type: 'easy', isShakeout: true, dayOffset: shakeoutDayOffset,
+            description: 'pre-race shakeout — easy jog, stay loose',
+            hrZone: hrZoneFor('easy', maxHR),
+          })
+          lastWeek.runs.sort((a, b) => (a.dayOffset ?? 0) - (b.dayOffset ?? 0))
+          lastWeek.totalKm = roundHalf(lastWeek.runs.reduce((sum, r) => sum + r.distance, 0))
+        }
+      }
+    }
   }
 
   return { plan: weeks, warning }

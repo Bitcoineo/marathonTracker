@@ -161,9 +161,11 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                   {formatShortDate(weekDates[0])} – {formatShortDate(weekDates[weekDates.length - 1])}
                 </p>
                 <p className="font-inter text-[#aaa]" style={{ fontSize: 11 }}>
-                  {weekDates.map((d, i) =>
-                    `${DAY_NAMES[d.getDay()]} ${runTargets[i]?.distance ?? 0}`
-                  ).join(' · ')}
+                  {weekDates
+                    .map((d, i) => ({ day: DAY_NAMES[d.getDay()], dist: runTargets[i]?.distance ?? 0 }))
+                    .filter(e => e.dist > 0)
+                    .map(e => `${e.day} ${e.dist}`)
+                    .join(' · ')}
                 </p>
               </div>
             </div>
@@ -195,9 +197,25 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                             {DAY_NAMES[date.getDay()]} {formatShortDate(date)}
                           </span>
                           <span className="font-inter text-[13px] text-[#0d0d0d]">
-                            {target.distance}km
+                            {target.distance}km{target.isShakeout ? ' easy' : ''}
                           </span>
-                          {(() => {
+                          {target.isShakeout ? (
+                            <span
+                              className="font-mono"
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                fontStyle: 'italic',
+                                color: '#16a34a',
+                                backgroundColor: 'rgba(34,197,94,0.1)',
+                                border: '1px solid rgba(34,197,94,0.2)',
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                              }}
+                            >
+                              Shakeout
+                            </span>
+                          ) : (() => {
                             const style = getRunTypeStyle(target.type)
                             return (
                               <span
@@ -216,12 +234,19 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                               </span>
                             )
                           })()}
-                          <span className="font-mono text-[11px] text-[#e11d48]">
-                            ♥ {(target.hrZone ?? typeInfo.hr).min}–{(target.hrZone ?? typeInfo.hr).max}
-                          </span>
+                          {!target.isShakeout && (
+                            <span className="font-mono text-[11px] text-[#e11d48]">
+                              ♥ {(target.hrZone ?? typeInfo.hr).min}–{(target.hrZone ?? typeInfo.hr).max}
+                            </span>
+                          )}
                           {target.description && (
                             <span className="font-inter text-[11px] text-[#aaa] basis-full">
                               {target.description}
+                            </span>
+                          )}
+                          {target.isShakeout && (
+                            <span className="font-inter text-[11px] text-[#aaa] basis-full" style={{ fontStyle: 'italic' }}>
+                              The hay is in the barn.
                             </span>
                           )}
                           {loggedRun && (
@@ -242,10 +267,15 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
 
       {/* Marathon Finale */}
       {(() => {
-        const raceDate = getRaceDate()
-        const formatted = raceDate.toLocaleDateString('en', {
-          weekday: 'long', month: 'long', day: 'numeric',
-        })
+        let raceDate = getRaceDate()
+        try {
+          const profile = JSON.parse(localStorage.getItem('athleteProfile') || '{}')
+          if (!profile.hasRaceDate && profile.startDate && profile.prepWeeks) {
+            const start = new Date(profile.startDate)
+            raceDate = new Date(start.getTime() + profile.prepWeeks * 7 * 86_400_000)
+          }
+        } catch { /* fallback */ }
+        const formatted = raceDate.toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
         return (
           <>
             <div

@@ -9,6 +9,8 @@ export interface RunTarget {
   type: RunType
   description?: string
   hrZone?: { min: number; max: number }
+  isShakeout?: boolean
+  dayOffset?: number
 }
 
 export interface WeekPlan {

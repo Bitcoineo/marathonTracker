@@ -28,7 +28,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
   const typeInfo = getRunTypeInfo(runTarget.type)
   const [distance, setDistance] = useState(existingRun?.distance ?? target)
   const [feel, setFeel] = useState(existingRun?.feel ?? '')
-  const [notes, setNotes] = useState(existingRun?.notes ?? '')
+
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(null)
@@ -61,7 +61,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
       date: date.toISOString().split('T')[0],
       distance,
       feel,
-      notes,
+      notes: existingRun?.notes ?? '',
       week,
     })
   }
@@ -186,19 +186,6 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
             )
           })}
         </div>
-
-        {/* Notes */}
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="How did it go..."
-          className="w-full font-inter text-[15px] text-[#0d0d0d] bg-transparent outline-none resize-none pb-2"
-          style={{
-            border: 'none',
-            borderBottom: '1px solid rgba(0,0,0,0.1)',
-          }}
-          rows={2}
-        />
 
         {/* Delete (edit mode only) */}
         {existingRun && onDelete && (

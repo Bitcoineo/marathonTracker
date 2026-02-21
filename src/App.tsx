@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Dashboard from './components/Dashboard'
 import History from './components/History'
@@ -42,8 +42,36 @@ function App() {
   const [viewingWeek, setViewingWeek] = useState(currentWeek)
   const isMobile = useWindowWidth() < 768
 
+  // Slide direction for tab transitions
+  const slideDirection = useRef<'left' | 'right'>('right')
+
+  function switchTab(newTab: Tab) {
+    const oldIndex = TABS.indexOf(activeTab)
+    const newIndex = TABS.indexOf(newTab)
+    if (newIndex === oldIndex) return
+    slideDirection.current = newIndex > oldIndex ? 'right' : 'left'
+    setActiveTab(newTab)
+  }
+
+  // Swipe gesture
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const [swipeHintVisible, setSwipeHintVisible] = useState(
+    () => localStorage.getItem('swipeHintSeen') !== 'true'
+  )
+
+  useEffect(() => {
+    if (!swipeHintVisible) return
+    const timer = setTimeout(() => {
+      setSwipeHintVisible(false)
+      localStorage.setItem('swipeHintSeen', 'true')
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [swipeHintVisible])
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(runs))
+    window.dispatchEvent(new Event('runs-updated'))
   }, [runs])
 
   function handleOpenLog(date: Date, dayIndex: number, week: number) {
@@ -104,7 +132,7 @@ function App() {
       {/* Top Bar */}
       <div className="w-full flex items-center" style={{ justifyContent: isMobile ? 'center' : 'space-between' }}>
         <p
-          onClick={() => { setActiveTab('Now'); setViewingWeek(currentWeek) }}
+          onClick={() => { switchTab('Now'); setViewingWeek(currentWeek) }}
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 800,
@@ -186,7 +214,7 @@ function App() {
         {TABS.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => switchTab(tab)}
             className="font-inter bg-transparent border-none cursor-pointer outline-none"
             style={{
               fontSize: 13,
@@ -214,18 +242,54 @@ function App() {
         ))}
       </div>
 
+      {/* Swipe hint */}
+      <div
+        className="font-inter"
+        style={{
+          textAlign: 'center',
+          fontSize: 11,
+          color: '#bbb',
+          opacity: swipeHintVisible ? 1 : 0,
+          transition: 'opacity 0.5s',
+          height: 16,
+          pointerEvents: 'none',
+        }}
+      >
+        ← swipe to navigate →
+      </div>
+
       {/* Content */}
       <div
         className="flex-1"
         style={{
           overflowY: activeTab === 'Now' ? 'hidden' : 'auto',
         }}
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches[0].clientX
+          touchStartY.current = e.touches[0].clientY
+        }}
+        onTouchEnd={(e) => {
+          const deltaX = e.changedTouches[0].clientX - touchStartX.current
+          const deltaY = e.changedTouches[0].clientY - touchStartY.current
+          if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
+          const currentIndex = TABS.indexOf(activeTab)
+          const nextIndex = deltaX < 0
+            ? Math.min(currentIndex + 1, TABS.length - 1)
+            : Math.max(currentIndex - 1, 0)
+          if (nextIndex !== currentIndex) switchTab(TABS[nextIndex])
+        }}
       >
-        {activeTab === 'Now' && (
-          <Dashboard runs={runs} viewingWeek={viewingWeek} onOpenLog={handleOpenLog} />
-        )}
-        {activeTab === 'History' && <History runs={runs} onEdit={handleEdit} />}
-        {activeTab === 'Program' && <Program runs={runs} viewingWeek={viewingWeek} />}
+        <div
+          key={activeTab}
+          className={slideDirection.current === 'right' ? 'slide-from-right' : 'slide-from-left'}
+          style={{ height: '100%' }}
+        >
+          {activeTab === 'Now' && (
+            <Dashboard runs={runs} viewingWeek={viewingWeek} onOpenLog={handleOpenLog} onChangeWeek={setViewingWeek} />
+          )}
+          {activeTab === 'History' && <History onEdit={handleEdit} />}
+          {activeTab === 'Program' && <Program runs={runs} viewingWeek={viewingWeek} />}
+        </div>
       </div>
 
       <AnimatePresence>

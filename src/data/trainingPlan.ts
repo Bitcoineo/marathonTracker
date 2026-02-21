@@ -169,7 +169,15 @@ export function getWeekDates(week: number): Date[] {
   const daysToMonday = (1 - startDay + 7) % 7
   const firstMonday = new Date(startDate.getTime() + daysToMonday * MS_PER_DAY)
   const weekMonday = new Date(firstMonday.getTime() + (week - 1) * 7 * MS_PER_DAY)
-  return getRunDayOffsets().map(dayOffset => {
+
+  // Use stored dayOffsets from plan if available (handles trimmed/modified weeks)
+  const plan = getStoredPlan()
+  const weekPlan = plan?.[week - 1]
+  const offsets = weekPlan?.runs?.length && weekPlan.runs.every(r => r.dayOffset)
+    ? weekPlan.runs.map(r => r.dayOffset!)
+    : getRunDayOffsets()
+
+  return offsets.map(dayOffset => {
     const date = new Date(weekMonday)
     date.setDate(weekMonday.getDate() + (dayOffset - 1))
     return date

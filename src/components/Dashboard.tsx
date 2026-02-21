@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Badges from './Badges'
 import {
+  getCurrentWeek,
   getDaysRemaining,
   getWeekDates,
   getRunTargets,
@@ -16,9 +17,10 @@ interface DashboardProps {
   runs: RunEntry[]
   viewingWeek: number
   onOpenLog: (date: Date, dayIndex: number, week: number) => void
+  onChangeWeek: (week: number) => void
 }
 
-export default function Dashboard({ runs, viewingWeek, onOpenLog }: DashboardProps) {
+export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }: DashboardProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   useEffect(() => {
     if (localStorage.getItem('hasSeenRunTooltip')) return
@@ -86,13 +88,75 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog }: DashboardPro
         overflow: 'hidden',
       }}
     >
-      {/* Week Label */}
-        <p
-          className="font-inter text-center"
-          style={{ fontSize: 14, fontWeight: 600, color: '#888', margin: 0, marginBottom: -8 }}
+      {/* Week Navigation */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: -8 }}>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <button
+            className="font-inter"
+            onClick={() => onChangeWeek(viewingWeek - 1)}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              fontWeight: 300,
+              color: '#0d0d0d',
+              cursor: 'pointer',
+              visibility: viewingWeek <= 1 ? 'hidden' : 'visible',
+            }}
+          >
+            ‹
+          </button>
+          <p
+            className="font-inter text-center"
+            style={{ fontSize: 14, fontWeight: 600, color: '#888', margin: 0, minWidth: 120, textAlign: 'center' }}
+          >
+            Week {viewingWeek} of {getTotalWeeks()}
+          </p>
+          <button
+            className="font-inter"
+            onClick={() => onChangeWeek(viewingWeek + 1)}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              fontWeight: 300,
+              color: '#0d0d0d',
+              cursor: 'pointer',
+              visibility: viewingWeek >= getTotalWeeks() ? 'hidden' : 'visible',
+            }}
+          >
+            ›
+          </button>
+        </div>
+        <div
+          className="font-inter"
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            color: '#aaa',
+            cursor: 'pointer',
+            marginTop: 4,
+            opacity: viewingWeek !== getCurrentWeek() ? 1 : 0,
+            transition: 'opacity 0.2s',
+            pointerEvents: viewingWeek !== getCurrentWeek() ? 'auto' : 'none',
+          }}
+          onClick={() => onChangeWeek(getCurrentWeek())}
         >
-          Week {viewingWeek} of {getTotalWeeks()}
-        </p>
+          Today →
+        </div>
+      </div>
 
       {/* Progress Ring */}
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -241,6 +305,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog }: DashboardPro
               const todayMidnight = new Date()
               todayMidnight.setHours(0, 0, 0, 0)
               const entries = weekDates.map((date, index) => ({ date, index }))
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
               if (viewingWeek === 1 && entries.some(e => e.date >= todayMidnight)) {
                 return entries.filter(e => e.date >= todayMidnight)
               }

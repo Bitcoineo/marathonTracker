@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Dashboard from './components/Dashboard'
-import History from './components/History'
-import Program from './components/Program'
+const History = lazy(() => import('./components/History'))
+const Program = lazy(() => import('./components/Program'))
 import LogRun from './components/LogRun'
 import Onboarding from './components/Onboarding'
 import { getCurrentWeek, getDayIndex } from './data/trainingPlan'
@@ -236,11 +236,13 @@ function App() {
           className={slideDirection.current === 'right' ? 'slide-from-right' : 'slide-from-left'}
           style={{ height: '100%' }}
         >
-          {activeTab === 'Now' && (
-            <Dashboard runs={runs} viewingWeek={viewingWeek} onOpenLog={handleOpenLog} onChangeWeek={setViewingWeek} />
-          )}
-          {activeTab === 'History' && <History onEdit={handleEdit} />}
-          {activeTab === 'Program' && <Program runs={runs} viewingWeek={viewingWeek} />}
+          <Suspense fallback={null}>
+            {activeTab === 'Now' && (
+              <Dashboard runs={runs} viewingWeek={viewingWeek} onOpenLog={handleOpenLog} onChangeWeek={setViewingWeek} />
+            )}
+            {activeTab === 'History' && <History onEdit={handleEdit} />}
+            {activeTab === 'Program' && <Program runs={runs} viewingWeek={viewingWeek} />}
+          </Suspense>
         </div>
       </div>
 

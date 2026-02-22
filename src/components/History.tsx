@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import {
   getCurrentWeek,
   getWeekTarget,
   getWeekDates,
@@ -22,37 +14,6 @@ import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
 import { RUNS_KEY } from '../utils/storage'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import type { RunEntry } from '../types'
-
-interface ChartPayloadItem {
-  dataKey: string
-  value: number
-  color: string
-}
-
-function CustomTooltip({ active, payload, label }: {
-  active?: boolean
-  payload?: ChartPayloadItem[]
-  label?: string
-}) {
-  if (!active || !payload?.length) return null
-  const logged = payload.find((p) => p.dataKey === 'logged')?.value ?? 0
-  const target = payload.find((p) => p.dataKey === 'target')?.value ?? 0
-  return (
-    <div
-      className="font-inter text-[12px]"
-      style={{
-        background: '#fff',
-        padding: '8px 12px',
-        borderRadius: 8,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-      }}
-    >
-      <span style={{ color: '#0d0d0d' }}>{label}: </span>
-      <span style={{ color: '#00c86e', fontWeight: 600 }}>{logged}km</span>
-      <span style={{ color: '#aaa' }}> / {target}km</span>
-    </div>
-  )
-}
 
 function readRuns(): RunEntry[] {
   try {
@@ -68,6 +29,7 @@ export default function History({ onEdit }: HistoryProps) {
   const [runs, setRuns] = useState<RunEntry[]>(readRuns)
   const currentWeek = getCurrentWeek()
   const [expanded, setExpanded] = useState<number | null>(null)
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
 
   useEffect(() => {
@@ -151,38 +113,105 @@ export default function History({ onEdit }: HistoryProps) {
       </div>
 
       {/* Chart */}
-      {chartData.length > 0 && (
-        <div className="mb-8">
-          <p className="font-mono text-[11px] text-[#aaa] uppercase tracking-[0.1em] mb-4">
-            Km Per Week
-          </p>
-          <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
-            <LineChart data={chartData}>
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 11, fill: '#aaa' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis hide />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                dataKey="target"
+      {chartData.length > 0 && (() => {
+        const chartHeight = isMobile ? 120 : 160
+        const padTop = 16
+        const padBottom = 24
+        const padLeft = 4
+        const padRight = 4
+        const plotH = chartHeight - padTop - padBottom
+        const maxVal = Math.max(...chartData.map(d => Math.max(d.target, d.logged)), 1)
+        const minVal = Math.min(...chartData.map(d => Math.min(d.logged, d.target)))
+        const floor = Math.max(0, minVal * 0.7)
+        const ceiling = maxVal * 1.1
+        const range = ceiling - floor
+        const n = chartData.length
+        const stepX = (pt: number, w: number) => padLeft + (n > 1 ? pt / (n - 1) : 0.5) * (w - padLeft - padRight)
+        const yPos = (v: number) => padTop + plotH * (1 - (v - floor) / range)
+
+        return (
+          <div className="mb-8" style={{ position: 'relative' }}>
+            <p className="font-mono text-[11px] text-[#aaa] uppercase tracking-[0.1em] mb-4">
+              Km Per Week
+            </p>
+            <svg width="100%" height={chartHeight + 28} style={{ display: 'block', overflow: 'visible' }} viewBox={`0 0 100 ${chartHeight + 28}`} preserveAspectRatio="none">
+              {/* Target line (dashed gray) */}
+              <polyline
+                fill="none"
                 stroke="#ccc"
                 strokeWidth={1}
                 strokeDasharray="4 4"
-                dot={false}
+                vectorEffect="non-scaling-stroke"
+                points={chartData.map((d, i) => `${stepX(i, 100)},${yPos(d.target)}`).join(' ')}
               />
-              <Line
-                dataKey="logged"
+              {/* Logged line (solid green) */}
+              <polyline
+                fill="none"
                 stroke="#00c86e"
                 strokeWidth={2}
-                dot={{ fill: '#00c86e', r: 3 }}
+                vectorEffect="non-scaling-stroke"
+                points={chartData.map((d, i) => `${stepX(i, 100)},${yPos(d.logged)}`).join(' ')}
               />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+              {/* Dots on logged line */}
+              {chartData.map((d, i) => (
+                <circle
+                  key={i}
+                  cx={stepX(i, 100)}
+                  cy={yPos(d.logged)}
+                  r={1.5}
+                  fill="#00c86e"
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={() => setHoveredPoint(i)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                  onTouchStart={() => setHoveredPoint(i)}
+                  onTouchEnd={() => setHoveredPoint(null)}
+                />
+              ))}
+              {/* X-axis labels */}
+              {chartData.map((d, i) => (
+                <text
+                  key={i}
+                  x={stepX(i, 100)}
+                  y={chartHeight + 16}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fontFamily="Inter, sans-serif"
+                  fill="#aaa"
+                >
+                  {d.name}
+                </text>
+              ))}
+            </svg>
+            {/* Tooltip */}
+            {hoveredPoint !== null && (() => {
+              const d = chartData[hoveredPoint]
+              const pct = n > 1 ? hoveredPoint / (n - 1) * 100 : 50
+              return (
+                <div
+                  className="font-inter text-[12px]"
+                  style={{
+                    position: 'absolute',
+                    left: `${pct}%`,
+                    top: 24,
+                    transform: 'translateX(-50%)',
+                    background: '#fff',
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                    zIndex: 10,
+                  }}
+                >
+                  <span style={{ color: '#0d0d0d' }}>{d.name}: </span>
+                  <span style={{ color: '#00c86e', fontWeight: 600 }}>{d.logged}km</span>
+                  <span style={{ color: '#aaa' }}> / {d.target}km</span>
+                </div>
+              )
+            })()}
+          </div>
+        )
+      })()}
 
       {/* Week List */}
       {weeks.map((w) => {

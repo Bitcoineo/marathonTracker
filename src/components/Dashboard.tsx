@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Badges from './Badges'
 import {
   getCurrentWeek,
@@ -174,7 +173,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             stroke="rgba(0,0,0,0.06)"
             strokeWidth={strokeWidth}
           />
-          <motion.circle
+          <circle
             cx={center}
             cy={center}
             r={radius}
@@ -183,11 +182,10 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+            strokeDashoffset={strokeDashoffset}
             transform={`rotate(-90 ${center} ${center})`}
             filter="url(#glow)"
+            style={{ transition: 'stroke-dashoffset 1s ease-out' }}
           />
           <foreignObject
             x={center - foWidth / 2}
@@ -249,58 +247,52 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
 
         {/* This Week */}
         <div style={{ position: 'relative' }} onClickCapture={showTooltip ? dismissTooltip : undefined}>
-          <AnimatePresence>
-            {showTooltip && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                style={{
-                  position: 'absolute',
-                  bottom: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginBottom: 8,
-                  zIndex: 10,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  pointerEvents: 'none',
-                }}
-              >
-                <span
-                  className="font-inter"
-                  style={{
-                    background: 'white',
-                    color: '#aaa',
-                    fontSize: 12,
-                    fontWeight: 400,
-                    padding: '10px 14px',
-                    borderRadius: 10,
-                    border: '1px solid rgba(0,0,0,0.08)',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Tap a card to log your run
-                </span>
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    background: 'white',
-                    border: '1px solid rgba(0,0,0,0.08)',
-                    borderTop: 'none',
-                    borderLeft: 'none',
-                    transform: 'rotate(45deg)',
-                    marginTop: -6,
-                    boxShadow: '2px 2px 4px rgba(0,0,0,0.04)',
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: showTooltip ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
+              marginBottom: 8,
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pointerEvents: 'none',
+              opacity: showTooltip ? 1 : 0,
+              transition: 'opacity 0.3s, transform 0.3s',
+            }}
+          >
+            <span
+              className="font-inter"
+              style={{
+                background: 'white',
+                color: '#aaa',
+                fontSize: 12,
+                fontWeight: 400,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(0,0,0,0.08)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Tap a card to log your run
+            </span>
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                background: 'white',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderTop: 'none',
+                borderLeft: 'none',
+                transform: 'rotate(45deg)',
+                marginTop: -6,
+                boxShadow: '2px 2px 4px rgba(0,0,0,0.04)',
+              }}
+            />
+          </div>
           <div style={{ display: 'flex', gap: 5, width: '100%' }}>
             {(() => {
               const todayMidnight = new Date()
@@ -319,9 +311,9 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
               const target = runTargets[index] ?? { distance: 0, type: 'easy' as const }
 
               return (
-                <motion.div
+                <div
                   key={date.toISOString()}
-                  className="flex flex-col items-center cursor-pointer"
+                  className="flex flex-col items-center cursor-pointer run-card"
                   style={{
                     flex: 1,
                     minWidth: 0,
@@ -334,8 +326,8 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                         : '1.5px dashed rgba(0,0,0,0.15)',
                     borderRadius: 10,
                     background: 'white',
+                    transition: 'transform 0.1s',
                   }}
-                  whileTap={{ scale: 0.97 }}
                   onClick={() => onOpenLog(date, index, viewingWeek)}
                 >
                   {completed ? (
@@ -391,7 +383,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                       </>
                     )
                   })()}
-                </motion.div>
+                </div>
               )
             })}
           </div>

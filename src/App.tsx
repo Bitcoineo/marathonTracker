@@ -4,7 +4,7 @@ import Dashboard from './components/Dashboard'
 const History = lazy(() => import('./components/History'))
 const Program = lazy(() => import('./components/Program'))
 import LogRun from './components/LogRun'
-import Onboarding from './components/Onboarding'
+const Onboarding = lazy(() => import('./components/Onboarding'))
 import { getCurrentWeek, getDayIndex } from './data/trainingPlan'
 import { useWindowWidth } from './hooks/useWindowWidth'
 import { toDateKey } from './utils/dateHelpers'
@@ -114,7 +114,7 @@ function App() {
   }
 
   if (!onboarded) {
-    return <Onboarding onComplete={() => setOnboarded(true)} />
+    return <Suspense fallback={null}><Onboarding onComplete={() => setOnboarded(true)} /></Suspense>
   }
 
   return (
@@ -138,7 +138,7 @@ function App() {
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 800,
             fontStyle: 'italic',
-            fontSize: isMobile ? 18 : 20,
+            fontSize: isMobile ? 22 : 24,
             letterSpacing: '-0.02em',
             color: '#0d0d0d',
             textTransform: 'uppercase' as const,

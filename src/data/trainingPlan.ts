@@ -1,4 +1,5 @@
 import type { RunType, Sex, RunTarget } from '../types'
+import { PROFILE_KEY, PLAN_KEY } from '../utils/storage'
 export type { RunType, Sex, RunTarget }
 
 export function computeMaxHR(age: number, sex: Sex): number {
@@ -14,7 +15,7 @@ const DEFAULT_RUN_DAYS = [1, 4, 6] // Mon, Thu, Sat
 
 function getRunDayOffsets(): number[] {
   try {
-    const profile = localStorage.getItem('athleteProfile')
+    const profile = localStorage.getItem(PROFILE_KEY)
     if (profile) {
       const parsed = JSON.parse(profile)
       if (Array.isArray(parsed.runDays)) {
@@ -37,7 +38,7 @@ export function getDayIndex(jsDay: number): number {
 
 function getProfileMaxHR(): number {
   try {
-    const profile = localStorage.getItem('athleteProfile')
+    const profile = localStorage.getItem(PROFILE_KEY)
     if (profile) {
       const parsed = JSON.parse(profile)
       if (parsed.maxHR) return parsed.maxHR
@@ -75,7 +76,7 @@ export function clearPlanCache(): void {
 function getStoredPlan(): StoredWeekPlan[] | null {
   if (_cachedPlan !== undefined) return _cachedPlan
   try {
-    const stored = localStorage.getItem('trainingPlan')
+    const stored = localStorage.getItem(PLAN_KEY)
     _cachedPlan = stored ? JSON.parse(stored) : null
   } catch { _cachedPlan = null }
   return _cachedPlan ?? null
@@ -91,7 +92,7 @@ export function getTotalWeeks(): number {
 
 function getStartDate(): Date {
   try {
-    const profile = localStorage.getItem('athleteProfile')
+    const profile = localStorage.getItem(PROFILE_KEY)
     if (profile) {
       const parsed = JSON.parse(profile)
       if (parsed.startDate) return new Date(parsed.startDate)
@@ -106,7 +107,7 @@ export function getRaceDate(): Date {
 
 function getRaceDay(): Date {
   try {
-    const profile = localStorage.getItem('athleteProfile')
+    const profile = localStorage.getItem(PROFILE_KEY)
     if (profile) {
       const parsed = JSON.parse(profile)
       if (parsed.raceDate) return new Date(parsed.raceDate)

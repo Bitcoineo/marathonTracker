@@ -5,18 +5,19 @@ import History from './components/History'
 import Program from './components/Program'
 import LogRun from './components/LogRun'
 import Onboarding from './components/Onboarding'
-import { getCurrentWeek, getTotalWeeks, getDayIndex } from './data/trainingPlan'
+import { getCurrentWeek, getDayIndex } from './data/trainingPlan'
 import { useWindowWidth } from './hooks/useWindowWidth'
 import { toDateKey } from './utils/dateHelpers'
+import { RUNS_KEY, ONBOARDING_KEY } from './utils/storage'
+import { MOBILE_BREAKPOINT } from './utils/breakpoints'
 import type { RunEntry } from './types'
 
-const STORAGE_KEY = 'marathon-runs'
 const TABS = ['Now', 'History', 'Program'] as const
 type Tab = (typeof TABS)[number]
 
 function loadRuns(): RunEntry[] {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(RUNS_KEY)
     return stored ? JSON.parse(stored) : []
   } catch {
     return []
@@ -32,7 +33,7 @@ interface ModalState {
 
 function App() {
   const [onboarded, setOnboarded] = useState(
-    () => localStorage.getItem('onboardingComplete') === 'true'
+    () => localStorage.getItem(ONBOARDING_KEY) === 'true'
   )
   const [runs, setRuns] = useState<RunEntry[]>(loadRuns)
   const [modal, setModal] = useState<ModalState | null>(null)
@@ -40,7 +41,7 @@ function App() {
 
   const currentWeek = getCurrentWeek()
   const [viewingWeek, setViewingWeek] = useState(currentWeek)
-  const isMobile = useWindowWidth() < 768
+  const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
 
   // Slide direction for tab transitions
   const slideDirection = useRef<'left' | 'right'>('right')
@@ -70,7 +71,7 @@ function App() {
   }, [swipeHintVisible])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(runs))
+    localStorage.setItem(RUNS_KEY, JSON.stringify(runs))
     window.dispatchEvent(new Event('runs-updated'))
   }, [runs])
 
@@ -130,7 +131,7 @@ function App() {
       }}
     >
       {/* Top Bar */}
-      <div className="w-full flex items-center" style={{ justifyContent: isMobile ? 'center' : 'space-between' }}>
+      <div className="w-full flex items-center" style={{ justifyContent: 'center' }}>
         <p
           onClick={() => { switchTab('Now'); setViewingWeek(currentWeek) }}
           style={{
@@ -149,55 +150,6 @@ function App() {
         >
           marathon tracker
         </p>
-        <div className="flex items-center gap-1" style={{ display: isMobile ? 'none' : undefined }}>
-          <button
-            onClick={() => setViewingWeek((w) => w - 1)}
-            disabled={viewingWeek === 1}
-            className="font-inter bg-transparent border-none cursor-pointer p-2"
-            style={{
-              fontSize: 16,
-              color: '#aaa',
-              opacity: viewingWeek === 1 ? 0.3 : 1,
-              cursor: viewingWeek === 1 ? 'default' : 'pointer',
-            }}
-          >
-            ‹
-          </button>
-          <span
-            className="font-inter text-[#aaa]"
-            style={{ fontSize: isMobile ? 13 : 15 }}
-          >
-            Week {viewingWeek} of {getTotalWeeks()}
-          </span>
-          <button
-            onClick={() => setViewingWeek((w) => w + 1)}
-            disabled={viewingWeek === currentWeek}
-            className="font-inter bg-transparent border-none cursor-pointer p-2"
-            style={{
-              fontSize: 16,
-              color: '#aaa',
-              opacity: viewingWeek === currentWeek ? 0.3 : 1,
-              cursor: viewingWeek === currentWeek ? 'default' : 'pointer',
-            }}
-          >
-            ›
-          </button>
-          {viewingWeek !== currentWeek && (
-            <button
-              onClick={() => setViewingWeek(currentWeek)}
-              className="font-inter border-none cursor-pointer"
-              style={{
-                fontSize: 11,
-                color: '#00c86e',
-                backgroundColor: '#00c86e1a',
-                padding: '4px 8px',
-                borderRadius: 999,
-              }}
-            >
-              Today
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Tabs */}

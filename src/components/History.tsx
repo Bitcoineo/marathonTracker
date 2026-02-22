@@ -19,6 +19,8 @@ import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import Footer from './Footer'
 import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
+import { RUNS_KEY } from '../utils/storage'
+import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import type { RunEntry } from '../types'
 
 interface ChartPayloadItem {
@@ -52,11 +54,9 @@ function CustomTooltip({ active, payload, label }: {
   )
 }
 
-const RUNS_STORAGE_KEY = 'marathon-runs'
-
 function readRuns(): RunEntry[] {
   try {
-    return JSON.parse(localStorage.getItem(RUNS_STORAGE_KEY) || '[]')
+    return JSON.parse(localStorage.getItem(RUNS_KEY) || '[]')
   } catch { return [] }
 }
 
@@ -68,7 +68,7 @@ export default function History({ onEdit }: HistoryProps) {
   const [runs, setRuns] = useState<RunEntry[]>(readRuns)
   const currentWeek = getCurrentWeek()
   const [expanded, setExpanded] = useState<number | null>(null)
-  const isMobile = useWindowWidth() < 768
+  const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
 
   useEffect(() => {
     const refresh = () => setRuns(readRuns())
@@ -84,7 +84,7 @@ export default function History({ onEdit }: HistoryProps) {
   const weeksWithRuns = new Set(runs.map(r => r.week))
 
   const weeks = Array.from({ length: totalWeeks }, (_, i) => i + 1)
-    .filter(w => w <= currentWeek || weeksWithRuns.has(w))
+    .filter(w => w <= Math.max(currentWeek, 1) || weeksWithRuns.has(w))
     .reverse()
   const dotSize = isMobile ? 10 : 8
 
@@ -106,7 +106,7 @@ export default function History({ onEdit }: HistoryProps) {
   ]
 
   const chartData = Array.from({ length: totalWeeks }, (_, i) => i + 1)
-    .filter(w => w <= currentWeek || weeksWithRuns.has(w))
+    .filter(w => w <= Math.max(currentWeek, 1) || weeksWithRuns.has(w))
     .map(w => {
       const dateKeys = new Set(getWeekDates(w).map(d => toDateKey(d)))
       const logged = runs
@@ -324,9 +324,9 @@ export default function History({ onEdit }: HistoryProps) {
         )
       })}
 
-      {currentWeek === 0 && (
+      {runs.length === 0 && (
         <p className="font-inter text-[14px] text-[#aaa] text-center py-8">
-          No history yet — training starts soon
+          No runs logged yet — start training to see your history
         </p>
       )}
       <Footer />

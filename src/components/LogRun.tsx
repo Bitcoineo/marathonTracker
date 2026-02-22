@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { getRunTargets, getRunTypeInfo } from '../data/trainingPlan'
 import { useWindowWidth } from '../hooks/useWindowWidth'
+import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import { DAY_NAMES } from '../utils/dateHelpers'
 import type { RunEntry } from '../types'
 const FEELS = ['😫', '😓', '😐', '😊', '🔥']
@@ -20,7 +21,7 @@ interface LogRunProps {
 }
 
 export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDelete, onClose }: LogRunProps) {
-  const isMobile = useWindowWidth() < 768
+  const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
 
   const targets = getRunTargets(week)
   const runTarget = targets[dayIndex] ?? { distance: 0, type: 'easy' as const }
@@ -61,7 +62,6 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
       date: date.toISOString().split('T')[0],
       distance,
       feel,
-      notes: existingRun?.notes ?? '',
       week,
     })
   }

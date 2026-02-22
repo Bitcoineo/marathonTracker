@@ -31,6 +31,5 @@ export interface RunEntry {
   date: string       // "2026-02-16" ISO date string
   distance: number   // km
   feel: string       // emoji
-  notes: string
   week: number       // 1–16
 }

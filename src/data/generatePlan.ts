@@ -349,7 +349,8 @@ export function generateTrainingPlan(
     if (weeks.length > 0) {
       const lastWeek = weeks[weeks.length - 1]
       if (!lastWeek.runs.some(r => r.isShakeout)) {
-        const lastWeekMonday = new Date(firstMonday.getTime() + (weeks.length - 1) * 7 * MS_PER_DAY)
+        const lastWeekIndex = lastWeek.weekNumber - 1
+        const lastWeekMonday = new Date(firstMonday.getTime() + lastWeekIndex * 7 * MS_PER_DAY)
         const shakeoutDayOffset = Math.round((shakeoutDate.getTime() - lastWeekMonday.getTime()) / MS_PER_DAY) + 1
         if (shakeoutDayOffset >= 1 && shakeoutDayOffset <= 7) {
           lastWeek.runs.push({
@@ -359,6 +360,21 @@ export function generateTrainingPlan(
           })
           lastWeek.runs.sort((a, b) => (a.dayOffset ?? 0) - (b.dayOffset ?? 0))
           lastWeek.totalKm = roundHalf(lastWeek.runs.reduce((sum, r) => sum + r.distance, 0))
+        } else {
+          // Shakeout falls outside last week — add a new shakeout-only week
+          const newWeekMonday = new Date(firstMonday.getTime() + lastWeek.weekNumber * 7 * MS_PER_DAY)
+          const newDayOffset = Math.round((shakeoutDate.getTime() - newWeekMonday.getTime()) / MS_PER_DAY) + 1
+          weeks.push({
+            weekNumber: lastWeek.weekNumber + 1,
+            phase: 'taper',
+            isStepBack: false,
+            totalKm: 3,
+            runs: [{
+              distance: 3, type: 'easy', isShakeout: true, dayOffset: newDayOffset,
+              description: 'pre-race shakeout — easy jog, stay loose',
+              hrZone: hrZoneFor('easy', maxHR),
+            }],
+          })
         }
       }
     }

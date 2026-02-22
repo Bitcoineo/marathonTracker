@@ -1,5 +1,6 @@
 import { getWeekDates, getRunTargets, getTotalWeeks, getDayIndex } from '../data/trainingPlan'
 import { useWindowWidth } from '../hooks/useWindowWidth'
+import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import { toDateKey } from '../utils/dateHelpers'
 import type { RunEntry } from '../types'
 
@@ -49,7 +50,7 @@ interface BadgesProps {
 }
 
 export default function Badges({ runs }: BadgesProps) {
-  const isMobile = useWindowWidth() < 768
+  const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
   const circleSize = 48
 
   return (

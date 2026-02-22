@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { generateTrainingPlan, computeMaxHR } from '../data/generatePlan'
 import type { Experience, Sex, PrepWeeksOption } from '../types'
 import { clearPlanCache } from '../data/trainingPlan'
+import { PLAN_KEY, ONBOARDING_KEY, PROFILE_KEY } from '../utils/storage'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -139,13 +140,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     }
 
     const { plan, warning } = generateTrainingPlan(safeExperience, computedPrepWeeks, computedMaxHR, safeRunDays, selectedDays, startDate, computedRaceDate)
-    localStorage.setItem('trainingPlan', JSON.stringify(plan))
+    localStorage.setItem(PLAN_KEY, JSON.stringify(plan))
     clearPlanCache()
-    localStorage.setItem('onboardingComplete', 'true')
-    localStorage.setItem('athleteProfile', JSON.stringify({
+    localStorage.setItem(ONBOARDING_KEY, 'true')
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
       age: safeAge,
-      weight: 70,
-      height: 175,
       sex: safeSex,
       maxHR: computedMaxHR,
       startDate,

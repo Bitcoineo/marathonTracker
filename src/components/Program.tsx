@@ -16,6 +16,8 @@ import { useWindowWidth } from '../hooks/useWindowWidth'
 import type { RunEntry } from '../types'
 import Footer from './Footer'
 import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
+import { PROFILE_KEY } from '../utils/storage'
+import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 
 const PHASE_COLORS: Record<string, { bg: string; text: string }> = {
   base:  { bg: 'rgba(34, 197, 94, 0.1)',  text: '#16a34a' },
@@ -35,7 +37,7 @@ interface ProgramProps {
 
 export default function Program({ runs, viewingWeek }: ProgramProps) {
   const currentWeek = getCurrentWeek()
-  const isMobile = useWindowWidth() < 768
+  const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
   const [expanded, setExpanded] = useState<number | null>(null)
 
   const runsByDate = new Map<string, RunEntry>()
@@ -269,7 +271,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
       {(() => {
         let raceDate = getRaceDate()
         try {
-          const profile = JSON.parse(localStorage.getItem('athleteProfile') || '{}')
+          const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')
           if (!profile.hasRaceDate && profile.startDate && profile.prepWeeks) {
             const start = new Date(profile.startDate)
             raceDate = new Date(start.getTime() + profile.prepWeeks * 7 * 86_400_000)

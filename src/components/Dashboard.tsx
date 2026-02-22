@@ -11,6 +11,7 @@ import {
 } from '../data/trainingPlan'
 import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { DAY_NAMES, formatShortDate, isToday, toDateKey } from '../utils/dateHelpers'
+import { RUN_TOOLTIP_KEY } from '../utils/storage'
 import type { RunEntry } from '../types'
 
 interface DashboardProps {
@@ -23,13 +24,13 @@ interface DashboardProps {
 export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }: DashboardProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   useEffect(() => {
-    if (localStorage.getItem('hasSeenRunTooltip')) return
+    if (localStorage.getItem(RUN_TOOLTIP_KEY)) return
     const timer = setTimeout(() => setShowTooltip(true), 800)
     return () => clearTimeout(timer)
   }, [])
   function dismissTooltip() {
     setShowTooltip(false)
-    localStorage.setItem('hasSeenRunTooltip', 'true')
+    localStorage.setItem(RUN_TOOLTIP_KEY, 'true')
   }
 
   const daysRemaining = getDaysRemaining()

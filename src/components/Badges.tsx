@@ -1,4 +1,4 @@
-import { getWeekDates, getRunTargets, getTotalWeeks, getDayIndex } from '../data/trainingPlan'
+import { getWeekDates, getRunTargets, getTotalWeeks, getDayIndex, getWeekPhase } from '../data/trainingPlan'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import { toDateKey } from '../utils/dateHelpers'
@@ -9,23 +9,27 @@ const BADGES = [
   { id: '3-week-streak', emoji: '📅', name: '3 Week Streak', desc: '3 consecutive weeks with all runs logged' },
   { id: 'long-20km', emoji: '🔟', name: 'Long Run 20km', desc: 'log a single run of 20km+' },
   { id: 'interval-warrior', emoji: '⚡', name: 'Interval Warrior', desc: 'complete 5 interval sessions' },
-  { id: 'peak-week', emoji: '🏔️', name: 'Peak Week', desc: 'complete all 3 runs in week 14' },
-  { id: 'marathon-ready', emoji: '🏁', name: 'Marathon Ready', desc: 'log your final Saturday run' },
+  { id: 'peak-week', emoji: '🏔️', name: 'Peak Week', desc: 'complete all runs in a peak week' },
+  { id: 'marathon-ready', emoji: '🏁', name: 'Marathon Ready', desc: 'log your final training run' },
 ]
 
 function isUnlocked(id: string, runs: RunEntry[]): boolean {
   switch (id) {
     case 'first-run':
       return runs.length > 0
-    case '3-week-streak':
+    case '3-week-streak': {
       for (let w = 1; w <= getTotalWeeks() - 2; w++) {
+        const t0 = getRunTargets(w).length
+        const t1 = getRunTargets(w + 1).length
+        const t2 = getRunTargets(w + 2).length
         if (
-          runs.filter((r) => r.week === w).length >= 3 &&
-          runs.filter((r) => r.week === w + 1).length >= 3 &&
-          runs.filter((r) => r.week === w + 2).length >= 3
+          runs.filter((r) => r.week === w).length >= t0 &&
+          runs.filter((r) => r.week === w + 1).length >= t1 &&
+          runs.filter((r) => r.week === w + 2).length >= t2
         ) return true
       }
       return false
+    }
     case 'long-20km':
       return runs.some((r) => r.distance >= 20)
     case 'interval-warrior':
@@ -33,12 +37,22 @@ function isUnlocked(id: string, runs: RunEntry[]): boolean {
         const dow = new Date(r.date + 'T00:00:00').getDay()
         return getRunTargets(r.week)[getDayIndex(dow)]?.type === 'interval'
       }).length >= 5
-    case 'peak-week':
-      return runs.filter((r) => r.week === 14).length >= 3
+    case 'peak-week': {
+      const totalWeeks = getTotalWeeks()
+      for (let w = 1; w <= totalWeeks; w++) {
+        if (getWeekPhase(w) === 'peak') {
+          const targetCount = getRunTargets(w).length
+          if (runs.filter((r) => r.week === w).length >= targetCount) return true
+        }
+      }
+      return false
+    }
     case 'marathon-ready': {
-      const satDate = getWeekDates(getTotalWeeks())[2]
-      const satKey = toDateKey(satDate)
-      return runs.some((r) => r.date === satKey)
+      const lastWeek = getTotalWeeks()
+      const lastWeekDates = getWeekDates(lastWeek)
+      const lastRunDate = lastWeekDates[lastWeekDates.length - 1]
+      const lastRunKey = toDateKey(lastRunDate)
+      return runs.some((r) => r.date === lastRunKey)
     }
     default:
       return false

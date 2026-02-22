@@ -8,7 +8,7 @@ import Onboarding from './components/Onboarding'
 import { getCurrentWeek, getDayIndex } from './data/trainingPlan'
 import { useWindowWidth } from './hooks/useWindowWidth'
 import { toDateKey } from './utils/dateHelpers'
-import { RUNS_KEY, ONBOARDING_KEY } from './utils/storage'
+import { RUNS_KEY, ONBOARDING_KEY, SWIPE_HINT_KEY } from './utils/storage'
 import { MOBILE_BREAKPOINT } from './utils/breakpoints'
 import type { RunEntry } from './types'
 
@@ -58,14 +58,14 @@ function App() {
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
   const [swipeHintVisible, setSwipeHintVisible] = useState(
-    () => localStorage.getItem('swipeHintSeen') !== 'true'
+    () => localStorage.getItem(SWIPE_HINT_KEY) !== 'true'
   )
 
   useEffect(() => {
     if (!swipeHintVisible) return
     const timer = setTimeout(() => {
       setSwipeHintVisible(false)
-      localStorage.setItem('swipeHintSeen', 'true')
+      localStorage.setItem(SWIPE_HINT_KEY, 'true')
     }, 3000)
     return () => clearTimeout(timer)
   }, [swipeHintVisible])

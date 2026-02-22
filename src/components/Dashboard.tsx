@@ -10,7 +10,8 @@ import {
 } from '../data/trainingPlan'
 import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { DAY_NAMES, formatShortDate, isToday, toDateKey } from '../utils/dateHelpers'
-import { RUN_TOOLTIP_KEY } from '../utils/storage'
+import { RUN_TOOLTIP_KEY, SWIPE_TOOLTIP_KEY } from '../utils/storage'
+import { burstConfetti } from '../utils/confetti'
 import type { RunEntry } from '../types'
 
 interface DashboardProps {
@@ -22,6 +23,7 @@ interface DashboardProps {
 
 export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }: DashboardProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const [showSwipeTooltip, setShowSwipeTooltip] = useState(false)
   useEffect(() => {
     if (localStorage.getItem(RUN_TOOLTIP_KEY)) return
     const timer = setTimeout(() => setShowTooltip(true), 800)
@@ -30,7 +32,19 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
   function dismissTooltip() {
     setShowTooltip(false)
     localStorage.setItem(RUN_TOOLTIP_KEY, 'true')
+    if (!localStorage.getItem(SWIPE_TOOLTIP_KEY)) {
+      setTimeout(() => setShowSwipeTooltip(true), 600)
+    }
   }
+  function dismissSwipeTooltip() {
+    setShowSwipeTooltip(false)
+    localStorage.setItem(SWIPE_TOOLTIP_KEY, 'true')
+  }
+  useEffect(() => {
+    if (!showSwipeTooltip) return
+    const t = setTimeout(dismissSwipeTooltip, 3000)
+    return () => clearTimeout(t)
+  }, [showSwipeTooltip])
 
   const daysRemaining = getDaysRemaining()
   const weekDates = getWeekDates(viewingWeek)
@@ -41,6 +55,15 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
   const kmLogged = runs
     .filter((r) => r.week === viewingWeek)
     .reduce((sum, r) => sum + r.distance, 0)
+
+  // Confetti on week completion
+  useEffect(() => {
+    if (weekTarget <= 0 || kmLogged < weekTarget) return
+    const key = `confetti-w${viewingWeek}`
+    if (localStorage.getItem(key)) return
+    localStorage.setItem(key, 'true')
+    burstConfetti()
+  }, [kmLogged, weekTarget, viewingWeek])
 
   // Progress ring
   const radius = 75
@@ -246,7 +269,8 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
         </div>
 
         {/* This Week */}
-        <div style={{ position: 'relative' }} onClickCapture={showTooltip ? dismissTooltip : undefined}>
+        <div style={{ position: 'relative' }} onClickCapture={showTooltip ? dismissTooltip : showSwipeTooltip ? dismissSwipeTooltip : undefined}>
+          {/* Run tooltip */}
           <div
             style={{
               position: 'absolute',
@@ -278,6 +302,53 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
               }}
             >
               Tap a card to log your run
+            </span>
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                background: 'white',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderTop: 'none',
+                borderLeft: 'none',
+                transform: 'rotate(45deg)',
+                marginTop: -6,
+                boxShadow: '2px 2px 4px rgba(0,0,0,0.04)',
+              }}
+            />
+          </div>
+          {/* Swipe tooltip */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: showSwipeTooltip ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
+              marginBottom: 8,
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pointerEvents: 'none',
+              opacity: showSwipeTooltip ? 1 : 0,
+              transition: 'opacity 0.3s, transform 0.3s',
+            }}
+          >
+            <span
+              className="font-inter"
+              style={{
+                background: 'white',
+                color: '#aaa',
+                fontSize: 12,
+                fontWeight: 400,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(0,0,0,0.08)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Swipe left or right to navigate
             </span>
             <span
               style={{

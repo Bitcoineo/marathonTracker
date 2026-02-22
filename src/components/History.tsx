@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getCurrentWeek,
@@ -15,6 +15,92 @@ import { RUNS_KEY } from '../utils/storage'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import type { RunEntry } from '../types'
 
+interface ChartPoint { name: string; logged: number; target: number }
+
+function WeekChart({ data, isMobile }: { data: ChartPoint[]; isMobile: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(300)
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(entries => {
+      setWidth(entries[0].contentRect.width)
+    })
+    obs.observe(el)
+    setWidth(el.getBoundingClientRect().width)
+    return () => obs.disconnect()
+  }, [])
+
+  const H = isMobile ? 120 : 160
+  const padT = 12, padB = 28, padL = 8, padR = 8
+  const plotW = width - padL - padR
+  const plotH = H - padT - padB
+  const n = data.length
+
+  const allVals = data.flatMap(d => [d.logged, d.target]).filter(v => v > 0)
+  const maxVal = allVals.length ? Math.max(...allVals) : 1
+  const minVal = allVals.length ? Math.min(...allVals) : 0
+  const floor = Math.max(0, minVal * 0.7)
+  const ceiling = maxVal * 1.12
+  const range = ceiling - floor || 1
+
+  const toX = (i: number) => padL + (n > 1 ? (i / (n - 1)) * plotW : plotW / 2)
+  const toY = (v: number) => padT + plotH - ((v - floor) / range) * plotH
+
+  const targetPts = data.map((d, i) => `${toX(i)},${toY(d.target)}`).join(' ')
+  const loggedPts = data.map((d, i) => `${toX(i)},${toY(d.logged)}`).join(' ')
+
+  return (
+    <div ref={containerRef} className="mb-8" style={{ position: 'relative' }}>
+      <p className="font-mono text-[11px] text-[#aaa] uppercase tracking-[0.1em] mb-4">
+        Km Per Week
+      </p>
+      <svg width={width} height={H} style={{ display: 'block', overflow: 'visible' }}>
+        <polyline fill="none" stroke="#ccc" strokeWidth={1.5} strokeDasharray="4 4" points={targetPts} />
+        <polyline fill="none" stroke="#00c86e" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" points={loggedPts} />
+        {data.map((d, i) => (
+          <g key={i}>
+            <circle cx={toX(i)} cy={toY(d.logged)} r={3.5} fill="#00c86e" />
+            <circle cx={toX(i)} cy={toY(d.logged)} r={14} fill="transparent"
+              onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}
+              onTouchStart={() => setHoveredPoint(i)} onTouchEnd={() => setHoveredPoint(null)}
+            />
+          </g>
+        ))}
+        {data.map((d, i) => (
+          <text key={i} x={toX(i)} y={H - 6} textAnchor="middle"
+            fontSize="11" fontFamily="Inter, system-ui, sans-serif" fill="#aaa">
+            {d.name}
+          </text>
+        ))}
+      </svg>
+      {hoveredPoint !== null && (
+        <div style={{
+          position: 'absolute',
+          left: toX(hoveredPoint),
+          top: toY(data[hoveredPoint].logged) - 40,
+          transform: 'translateX(-50%)',
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: 8,
+          padding: '5px 10px',
+          fontSize: 12,
+          fontFamily: 'Inter, sans-serif',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          zIndex: 10,
+        }}>
+          <span style={{ color: '#00c86e', fontWeight: 600 }}>{data[hoveredPoint].logged}km</span>
+          <span style={{ color: '#aaa' }}> / {data[hoveredPoint].target}km</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function readRuns(): RunEntry[] {
   try {
     return JSON.parse(localStorage.getItem(RUNS_KEY) || '[]')
@@ -29,7 +115,6 @@ export default function History({ onEdit }: HistoryProps) {
   const [runs, setRuns] = useState<RunEntry[]>(readRuns)
   const currentWeek = getCurrentWeek()
   const [expanded, setExpanded] = useState<number | null>(null)
-  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
 
   useEffect(() => {
@@ -113,105 +198,7 @@ export default function History({ onEdit }: HistoryProps) {
       </div>
 
       {/* Chart */}
-      {chartData.length > 0 && (() => {
-        const chartHeight = isMobile ? 120 : 160
-        const padTop = 16
-        const padBottom = 24
-        const padLeft = 4
-        const padRight = 4
-        const plotH = chartHeight - padTop - padBottom
-        const maxVal = Math.max(...chartData.map(d => Math.max(d.target, d.logged)), 1)
-        const minVal = Math.min(...chartData.map(d => Math.min(d.logged, d.target)))
-        const floor = Math.max(0, minVal * 0.7)
-        const ceiling = maxVal * 1.1
-        const range = ceiling - floor
-        const n = chartData.length
-        const stepX = (pt: number, w: number) => padLeft + (n > 1 ? pt / (n - 1) : 0.5) * (w - padLeft - padRight)
-        const yPos = (v: number) => padTop + plotH * (1 - (v - floor) / range)
-
-        return (
-          <div className="mb-8" style={{ position: 'relative' }}>
-            <p className="font-mono text-[11px] text-[#aaa] uppercase tracking-[0.1em] mb-4">
-              Km Per Week
-            </p>
-            <svg width="100%" height={chartHeight + 28} style={{ display: 'block', overflow: 'visible' }} viewBox={`0 0 100 ${chartHeight + 28}`} preserveAspectRatio="none">
-              {/* Target line (dashed gray) */}
-              <polyline
-                fill="none"
-                stroke="#ccc"
-                strokeWidth={1}
-                strokeDasharray="4 4"
-                vectorEffect="non-scaling-stroke"
-                points={chartData.map((d, i) => `${stepX(i, 100)},${yPos(d.target)}`).join(' ')}
-              />
-              {/* Logged line (solid green) */}
-              <polyline
-                fill="none"
-                stroke="#00c86e"
-                strokeWidth={2}
-                vectorEffect="non-scaling-stroke"
-                points={chartData.map((d, i) => `${stepX(i, 100)},${yPos(d.logged)}`).join(' ')}
-              />
-              {/* Dots on logged line */}
-              {chartData.map((d, i) => (
-                <circle
-                  key={i}
-                  cx={stepX(i, 100)}
-                  cy={yPos(d.logged)}
-                  r={1.5}
-                  fill="#00c86e"
-                  style={{ cursor: 'pointer' }}
-                  onMouseEnter={() => setHoveredPoint(i)}
-                  onMouseLeave={() => setHoveredPoint(null)}
-                  onTouchStart={() => setHoveredPoint(i)}
-                  onTouchEnd={() => setHoveredPoint(null)}
-                />
-              ))}
-              {/* X-axis labels */}
-              {chartData.map((d, i) => (
-                <text
-                  key={i}
-                  x={stepX(i, 100)}
-                  y={chartHeight + 16}
-                  textAnchor="middle"
-                  fontSize={11}
-                  fontFamily="Inter, sans-serif"
-                  fill="#aaa"
-                >
-                  {d.name}
-                </text>
-              ))}
-            </svg>
-            {/* Tooltip */}
-            {hoveredPoint !== null && (() => {
-              const d = chartData[hoveredPoint]
-              const pct = n > 1 ? hoveredPoint / (n - 1) * 100 : 50
-              return (
-                <div
-                  className="font-inter text-[12px]"
-                  style={{
-                    position: 'absolute',
-                    left: `${pct}%`,
-                    top: 24,
-                    transform: 'translateX(-50%)',
-                    background: '#fff',
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                  }}
-                >
-                  <span style={{ color: '#0d0d0d' }}>{d.name}: </span>
-                  <span style={{ color: '#00c86e', fontWeight: 600 }}>{d.logged}km</span>
-                  <span style={{ color: '#aaa' }}> / {d.target}km</span>
-                </div>
-              )
-            })()}
-          </div>
-        )
-      })()}
+      {chartData.length > 0 && <WeekChart data={chartData} isMobile={isMobile} />}
 
       {/* Week List */}
       {weeks.map((w) => {

@@ -5,14 +5,14 @@ A mobile-first PWA for personalized marathon training. Users complete
 an onboarding flow, get a dynamically generated training plan, and log
 runs week by week. Designed to be sold as a standalone product.
 
-Live: https://marathon-tracker-gilt.vercel.app
+Live: https://marathon-tracker-bitcoineo.vercel.app
 
 ---
 
 ## Tech Stack
 - React 18 + TypeScript + Vite
 - Framer Motion (animations)
-- Recharts (history graph)
+- Pure SVG chart (history graph — no charting library)
 - Deployed on Vercel
 - PWA with manifest.json and custom icons
 
@@ -27,9 +27,14 @@ src/
     Program.tsx      — full plan by week with phase headers + marathon card
     LogRun.tsx       — bottom sheet for logging/editing/deleting runs
     Badges.tsx       — 6 achievement badges
+    Footer.tsx       — "Made by Bitcoineo" footer
   utils/
     generatePlan.ts  — core plan generation logic (see Plan Logic below)
     runTypeStyles.ts — color/label lookup per run type
+    confetti.ts      — canvas-based confetti burst on week completion
+    storage.ts       — localStorage key constants
+    dateHelpers.ts   — date formatting utilities
+    breakpoints.ts   — responsive breakpoint helpers
   data/
     trainingPlan.ts  — all localStorage read/write, plan caching
   hooks/
@@ -217,7 +222,7 @@ Locked: grayscale 30% opacity. Unlocked: full color, pop animation.
 
 ## Deployment
 Vercel project: marathon-tracker
-Alias: marathon-tracker-gilt.vercel.app
+Alias: marathon-tracker-bitcoineo.vercel.app
 Deploy: npm run build && vercel --prod
 
 ## Development

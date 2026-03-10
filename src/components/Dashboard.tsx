@@ -55,8 +55,8 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
   }, [kmLogged, weekTarget, viewingWeek])
 
   // Progress ring
-  const radius = 100
-  const strokeWidth = 12
+  const radius = 75
+  const strokeWidth = 10
   const size = radius * 2 + strokeWidth * 2 + 40
   const center = size / 2
   const circumference = 2 * Math.PI * radius

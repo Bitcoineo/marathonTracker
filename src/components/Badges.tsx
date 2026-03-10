@@ -115,143 +115,115 @@ interface BadgesProps {
 
 export default function Badges({ runs }: BadgesProps) {
   const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
-  const circleSize = 48
   const [selected, setSelected] = useState<string | null>(null)
 
-  const selectedBadge = BADGES.find((b) => b.id === selected)
-  const selectedUnlocked = selectedBadge ? isUnlocked(selectedBadge.id, runs) : false
-
   return (
-    <>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: isMobile ? 16 : 20,
-          marginTop: isMobile ? 8 : 16,
-        }}
-      >
-        {BADGES.map((badge) => {
-          const unlocked = isUnlocked(badge.id, runs)
-          return (
-            <div
-              key={badge.id}
-              className="flex flex-col items-center cursor-pointer"
-              onClick={() => { haptic('light'); setSelected(selected === badge.id ? null : badge.id) }}
-            >
-              <div
-                className="rounded-full flex items-center justify-center"
-                style={{
-                  width: circleSize,
-                  height: circleSize,
-                  backgroundColor: unlocked ? '#ffffff' : '#e8e5e0',
-                }}
-              >
-                <span
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: isMobile ? 8 : 16 }}>
+      {/* Row 1 */}
+      {[BADGES.slice(0, 3), BADGES.slice(3, 6)].map((row, rowIdx) => (
+        <div key={rowIdx}>
+          <div style={{ display: 'flex', gap: 5, width: '100%' }}>
+            {row.map((badge) => {
+              const unlocked = isUnlocked(badge.id, runs)
+              const isSelected = selected === badge.id
+              return (
+                <div
+                  key={badge.id}
+                  className="flex flex-col items-center cursor-pointer"
                   style={{
-                    fontSize: isMobile ? 20 : 24,
-                    filter: unlocked ? 'none' : 'grayscale(100%)',
-                    opacity: unlocked ? 1 : 0.3,
+                    flex: 1,
+                    minWidth: 0,
+                    padding: isMobile ? '10px 6px' : '12px 8px',
+                    border: unlocked
+                      ? '1.5px solid rgba(0,200,110,0.35)'
+                      : '1.5px dashed rgba(0,0,0,0.15)',
+                    borderRadius: 10,
+                    background: 'white',
                   }}
+                  onClick={() => { haptic('light'); setSelected(isSelected ? null : badge.id) }}
                 >
-                  {badge.emoji}
-                </span>
-              </div>
-              <span
-                className="font-inter font-medium text-center leading-tight"
-                style={{ fontSize: 11, color: unlocked ? '#0d0d0d' : '#aaa', marginTop: 4 }}
-              >
-                {badge.name}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Inline badge detail card */}
-      <AnimatePresence>
-        {selectedBadge && (
-          <motion.div
-            key={selectedBadge.id}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-            style={{ marginTop: 12 }}
-          >
-            <div
-              className="cursor-pointer"
-              onClick={() => { haptic('light'); setSelected(null) }}
-              style={{
-                background: '#ffffff',
-                borderRadius: 10,
-                border: selectedUnlocked ? '1.5px solid rgba(0,200,110,0.35)' : '1.5px dashed rgba(0,0,0,0.15)',
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-              }}
-            >
-              {/* Badge emoji */}
-              <div
-                className="rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  width: 44,
-                  height: 44,
-                  backgroundColor: selectedUnlocked ? '#f0ede8' : '#e8e5e0',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 22,
-                    filter: selectedUnlocked ? 'none' : 'grayscale(100%)',
-                    opacity: selectedUnlocked ? 1 : 0.35,
-                  }}
-                >
-                  {selectedBadge.emoji}
-                </span>
-              </div>
-
-              {/* Text content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="flex items-center gap-2">
-                  <p
-                    className="font-inter"
-                    style={{ fontWeight: 600, fontSize: 14, color: '#0d0d0d' }}
+                  <span
+                    style={{
+                      fontSize: isMobile ? 20 : 24,
+                      filter: unlocked ? 'none' : 'grayscale(100%)',
+                      opacity: unlocked ? 1 : 0.3,
+                    }}
                   >
-                    {selectedBadge.name}
-                  </p>
+                    {badge.emoji}
+                  </span>
+                  <span
+                    className="font-inter font-semibold text-center leading-tight"
+                    style={{ fontSize: isMobile ? 11 : 12, color: unlocked ? '#0d0d0d' : '#aaa', marginTop: 6 }}
+                  >
+                    {badge.name}
+                  </span>
                   <span
                     className="font-mono"
                     style={{
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: 600,
-                      color: selectedUnlocked ? '#00c86e' : '#aaa',
-                      backgroundColor: selectedUnlocked ? 'rgba(0,200,110,0.1)' : 'rgba(0,0,0,0.04)',
-                      padding: '2px 8px',
-                      borderRadius: 10,
+                      color: unlocked ? '#00c86e' : '#aaa',
+                      marginTop: 4,
                     }}
                   >
-                    {getProgress(selectedBadge.id, runs)}
+                    {unlocked ? '✓' : getProgress(badge.id, runs)}
                   </span>
                 </div>
-                <p
-                  className="font-inter"
-                  style={{
-                    fontSize: 12,
-                    color: '#888',
-                    lineHeight: 1.4,
-                    marginTop: 4,
-                  }}
+              )
+            })}
+          </div>
+
+          {/* Expandable detail for selected badge in this row */}
+          <AnimatePresence>
+            {row.some((b) => b.id === selected) && (() => {
+              const badge = row.find((b) => b.id === selected)!
+              const unlocked = isUnlocked(badge.id, runs)
+              return (
+                <motion.div
+                  key={badge.id}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
                 >
-                  {HOW_TO[selectedBadge.id]}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => { haptic('light'); setSelected(null) }}
+                    style={{ padding: '10px 4px 4px' }}
+                  >
+                    <p
+                      className="font-inter"
+                      style={{
+                        fontSize: 12,
+                        color: '#888',
+                        lineHeight: 1.45,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {HOW_TO[badge.id]}
+                    </p>
+                    {!unlocked && (
+                      <p
+                        className="font-mono"
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: '#aaa',
+                          textAlign: 'center',
+                          marginTop: 4,
+                        }}
+                      >
+                        {getProgress(badge.id, runs)}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )
+            })()}
+          </AnimatePresence>
+        </div>
+      ))}
+    </div>
   )
 }

@@ -69,6 +69,8 @@ export default function Badges({ runs }: BadgesProps) {
 
   return (
     <div
+      role="list"
+      aria-label="Achievement badges"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -81,6 +83,7 @@ export default function Badges({ runs }: BadgesProps) {
         return (
           <div
             key={badge.id}
+            role="listitem"
             className="flex flex-col items-center"
           >
             <div
@@ -92,6 +95,7 @@ export default function Badges({ runs }: BadgesProps) {
               }}
             >
               <span
+                aria-hidden="true"
                 style={{
                   fontSize: isMobile ? 20 : 24,
                   filter: unlocked ? 'none' : 'grayscale(100%)',
@@ -103,7 +107,7 @@ export default function Badges({ runs }: BadgesProps) {
             </div>
             <span
               className="font-inter font-medium text-center leading-tight"
-              style={{ fontSize: 11, color: unlocked ? '#0d0d0d' : '#aaa', marginTop: 4 }}
+              style={{ fontSize: 11, color: unlocked ? 'var(--color-text)' : 'var(--color-muted)', marginTop: 4 }}
             >
               {badge.name}
             </span>

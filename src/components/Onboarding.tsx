@@ -20,9 +20,9 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   fontFamily: "'Inter', sans-serif",
   fontSize: 16,
-  color: '#0d0d0d',
+  color: 'var(--color-text)',
   background: '#ffffff',
-  border: '1px solid rgba(0,0,0,0.08)',
+  border: '1px solid var(--color-border)',
   borderRadius: 12,
   padding: '14px 16px',
   outline: 'none',
@@ -31,7 +31,7 @@ const inputStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   background: '#ffffff',
-  border: '1px solid rgba(0,0,0,0.08)',
+  border: '1px solid var(--color-border)',
   padding: 20,
   borderRadius: 12,
   cursor: 'pointer',
@@ -39,7 +39,7 @@ const cardStyle: React.CSSProperties = {
 
 const continueStyle: React.CSSProperties = {
   width: '100%',
-  background: '#0d0d0d',
+  background: 'var(--color-text)',
   color: '#fff',
   fontWeight: 600,
   fontSize: 15,
@@ -54,7 +54,7 @@ const backStyle: React.CSSProperties = {
   width: '100%',
   background: 'transparent',
   border: 'none',
-  color: '#aaa',
+  color: 'var(--color-muted)',
   fontSize: 14,
   cursor: 'pointer',
   marginTop: 12,
@@ -75,7 +75,7 @@ const logoBaseStyle: React.CSSProperties = {
   fontWeight: 800,
   fontStyle: 'italic',
   textTransform: 'uppercase',
-  color: '#0d0d0d',
+  color: 'var(--color-text)',
   textAlign: 'center',
   marginTop: 20,
 }
@@ -178,7 +178,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     >
       {/* Progress dots — 5 dots, hidden on welcome */}
       {step > 0 && step <= 5 && (
-        <div style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
+        <div aria-hidden="true" style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
           {Array.from({ length: 5 }, (_, i) => (
             <div
               key={i}
@@ -186,7 +186,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: i === step - 1 ? '#0d0d0d' : '#ccc',
+                background: i === step - 1 ? 'var(--color-text)' : '#ccc',
                 transition: 'background 0.2s',
               }}
             />
@@ -213,7 +213,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </p>
               <p
                 className="font-inter"
-                style={{ fontWeight: 400, fontStyle: 'italic', fontSize: 15, color: '#aaa', marginTop: 4, marginBottom: 48 }}
+                style={{ fontWeight: 400, fontStyle: 'italic', fontSize: 15, color: 'var(--color-muted)', marginTop: 4, marginBottom: 48 }}
               >
                 Train smart. Run far.
               </p>
@@ -221,7 +221,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 onClick={() => { haptic('medium'); setStep(1) }}
                 className="font-inter"
                 style={{
-                  background: '#0d0d0d',
+                  background: 'var(--color-text)',
                   color: '#fff',
                   fontWeight: 600,
                   fontSize: 15,
@@ -250,7 +250,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <p style={{ ...logoBaseStyle, fontSize: 24, marginBottom: 0 }}>Marathon Tracker</p>
               <h2
                 className="font-inter"
-                style={{ fontWeight: 600, fontSize: 24, color: '#0d0d0d', marginBottom: 24, marginTop: 32 }}
+                style={{ fontWeight: 600, fontSize: 24, color: 'var(--color-text)', marginBottom: 24, marginTop: 32 }}
               >
                 Have you already started training?
               </h2>
@@ -261,8 +261,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     ...cardStyle,
                     border: alreadyStarted === false
-                      ? '2px solid #0d0d0d'
-                      : '1px solid rgba(0,0,0,0.08)',
+                      ? '2px solid var(--color-text)'
+                      : '1px solid var(--color-border)',
                   }}
                   onClick={() => {
                     haptic('selection')
@@ -271,10 +271,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     setStep(2)
                   }}
                 >
-                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
+                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
                     ✅ No, I'm starting fresh
                   </p>
-                  <p className="font-inter" style={{ fontSize: 13, color: '#aaa', margin: '4px 0 0' }}>
+                  <p className="font-inter" style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0' }}>
                     We'll start your plan from today
                   </p>
                 </div>
@@ -284,18 +284,18 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     ...cardStyle,
                     border: alreadyStarted === true
-                      ? '2px solid #0d0d0d'
-                      : '1px solid rgba(0,0,0,0.08)',
+                      ? '2px solid var(--color-text)'
+                      : '1px solid var(--color-border)',
                     cursor: alreadyStarted === true ? 'default' : 'pointer',
                   }}
                   onClick={() => {
                     if (alreadyStarted !== true) { haptic('selection'); setAlreadyStarted(true) }
                   }}
                 >
-                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
+                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
                     🏃 Yes, I already started
                   </p>
-                  <p className="font-inter" style={{ fontSize: 13, color: '#aaa', margin: '4px 0 0' }}>
+                  <p className="font-inter" style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0' }}>
                     Pick your training start date
                   </p>
 
@@ -344,7 +344,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <p style={{ ...logoBaseStyle, fontSize: 24, marginBottom: 0 }}>Marathon Tracker</p>
               <h2
                 className="font-inter"
-                style={{ fontWeight: 600, fontSize: 24, color: '#0d0d0d', marginBottom: 24, marginTop: 32 }}
+                style={{ fontWeight: 600, fontSize: 24, color: 'var(--color-text)', marginBottom: 24, marginTop: 32 }}
               >
                 Do you have a race date?
               </h2>
@@ -355,8 +355,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     ...cardStyle,
                     border: hasRaceDate === true
-                      ? '2px solid #0d0d0d'
-                      : '1px solid rgba(0,0,0,0.08)',
+                      ? '2px solid var(--color-text)'
+                      : '1px solid var(--color-border)',
                     cursor: hasRaceDate === true ? 'default' : 'pointer',
                   }}
                   onClick={() => {
@@ -367,10 +367,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     }
                   }}
                 >
-                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
+                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
                     📅 Yes, I have a race date
                   </p>
-                  <p className="font-inter" style={{ fontSize: 13, color: '#aaa', margin: '4px 0 0' }}>
+                  <p className="font-inter" style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0' }}>
                     We'll build your plan around it
                   </p>
 
@@ -390,10 +390,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          border: '1px solid rgba(0,0,0,0.08)',
+                          border: '1px solid var(--color-border)',
                         }}
                       >
-                        <span className="font-inter" style={{ fontWeight: 500, fontSize: 14, color: '#0d0d0d' }}>
+                        <span className="font-inter" style={{ fontWeight: 500, fontSize: 14, color: 'var(--color-text)' }}>
                           Race date
                         </span>
                         <input
@@ -408,7 +408,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             fontSize: 14,
                             fontFamily: "'Inter', sans-serif",
                             fontWeight: 500,
-                            color: '#0d0d0d',
+                            color: 'var(--color-text)',
                             colorScheme: 'light',
                           }}
                         />
@@ -422,8 +422,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   style={{
                     ...cardStyle,
                     border: hasRaceDate === false
-                      ? '2px solid #0d0d0d'
-                      : '1px solid rgba(0,0,0,0.08)',
+                      ? '2px solid var(--color-text)'
+                      : '1px solid var(--color-border)',
                     cursor: hasRaceDate === false ? 'default' : 'pointer',
                   }}
                   onClick={() => {
@@ -434,10 +434,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     }
                   }}
                 >
-                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
+                  <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
                     🗓 Not yet
                   </p>
-                  <p className="font-inter" style={{ fontSize: 13, color: '#aaa', margin: '4px 0 0' }}>
+                  <p className="font-inter" style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0' }}>
                     Choose how many weeks to train
                   </p>
 
@@ -460,7 +460,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                   left: '50%',
                                   transform: 'translateX(-50%)',
                                   fontSize: 13,
-                                  color: '#00c86e',
+                                  color: 'var(--color-green)',
                                   fontWeight: 500,
                                   whiteSpace: 'nowrap',
                                 }}
@@ -474,8 +474,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                 padding: '12px 16px',
                                 textAlign: 'center',
                                 border: prepWeeks === w
-                                  ? '2px solid #0d0d0d'
-                                  : '1px solid rgba(0,0,0,0.08)',
+                                  ? '2px solid var(--color-text)'
+                                  : '1px solid var(--color-border)',
                                 minWidth: 56,
                               }}
                               onClick={(e) => {
@@ -485,10 +485,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                 setStep(3)
                               }}
                             >
-                              <p className="font-inter" style={{ fontWeight: 600, fontSize: 16, color: '#0d0d0d', margin: 0 }}>
+                              <p className="font-inter" style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-text)', margin: 0 }}>
                                 {w}
                               </p>
-                              <p className="font-inter" style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>
+                              <p className="font-inter" style={{ fontSize: 11, color: 'var(--color-muted)', margin: '2px 0 0' }}>
                                 weeks
                               </p>
                             </div>
@@ -534,7 +534,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <p style={{ ...logoBaseStyle, fontSize: 24, marginBottom: 0 }}>Marathon Tracker</p>
               <h2
                 className="font-inter"
-                style={{ fontWeight: 600, fontSize: 24, color: '#0d0d0d', marginBottom: 24, marginTop: 32 }}
+                style={{ fontWeight: 600, fontSize: 24, color: 'var(--color-text)', marginBottom: 24, marginTop: 32 }}
               >
                 What's your running background?
               </h2>
@@ -546,8 +546,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     style={{
                       ...cardStyle,
                       border: experience === opt.key
-                        ? '2px solid #0d0d0d'
-                        : '1px solid rgba(0,0,0,0.08)',
+                        ? '2px solid var(--color-text)'
+                        : '1px solid var(--color-border)',
                     }}
                     onClick={() => {
                       haptic('medium')
@@ -555,10 +555,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       setStep(4)
                     }}
                   >
-                    <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
+                    <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
                       {opt.emoji} {opt.title}
                     </p>
-                    <p className="font-inter" style={{ fontSize: 13, color: '#aaa', margin: '4px 0 0' }}>
+                    <p className="font-inter" style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0' }}>
                       {opt.desc}
                     </p>
                   </div>
@@ -589,7 +589,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <p style={{ ...logoBaseStyle, fontSize: 24, marginBottom: 0 }}>Marathon Tracker</p>
               <h2
                 className="font-inter"
-                style={{ fontWeight: 600, fontSize: 24, color: '#0d0d0d', marginBottom: 24, marginTop: 32 }}
+                style={{ fontWeight: 600, fontSize: 24, color: 'var(--color-text)', marginBottom: 24, marginTop: 32 }}
               >
                 Set up your schedule
               </h2>
@@ -610,7 +610,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           left: '50%',
                           transform: 'translateX(-50%)',
                           fontSize: 13,
-                          color: '#00c86e',
+                          color: 'var(--color-green)',
                           fontWeight: 500,
                           whiteSpace: 'nowrap',
                         }}
@@ -624,8 +624,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         padding: '12px 16px',
                         textAlign: 'center',
                         border: runDaysPerWeek === f
-                          ? '2px solid #0d0d0d'
-                          : '1px solid rgba(0,0,0,0.08)',
+                          ? '2px solid var(--color-text)'
+                          : '1px solid var(--color-border)',
                         minWidth: 56,
                       }}
                       onClick={() => {
@@ -634,10 +634,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         setSelectedDays([])
                       }}
                     >
-                      <p className="font-inter" style={{ fontWeight: 600, fontSize: 16, color: '#0d0d0d', margin: 0 }}>
+                      <p className="font-inter" style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-text)', margin: 0 }}>
                         {f}
                       </p>
-                      <p className="font-inter" style={{ fontSize: 11, color: '#aaa', margin: '2px 0 0' }}>
+                      <p className="font-inter" style={{ fontSize: 11, color: 'var(--color-muted)', margin: '2px 0 0' }}>
                         days
                       </p>
                     </div>
@@ -658,8 +658,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           padding: '10px 0',
                           width: 46,
                           textAlign: 'center',
-                          background: isSelected ? '#0d0d0d' : '#ffffff',
-                          border: isSelected ? '2px solid #0d0d0d' : '1px solid rgba(0,0,0,0.08)',
+                          background: isSelected ? 'var(--color-text)' : '#ffffff',
+                          border: isSelected ? '2px solid var(--color-text)' : '1px solid var(--color-border)',
                         }}
                         onClick={() => {
                           haptic('selection')
@@ -675,7 +675,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           style={{
                             fontWeight: 600,
                             fontSize: 12,
-                            color: isSelected ? '#ffffff' : '#0d0d0d',
+                            color: isSelected ? '#ffffff' : 'var(--color-text)',
                             margin: 0,
                           }}
                         >
@@ -687,7 +687,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 </div>
 
                 {selectedDays.length !== runDaysPerWeek && (
-                  <p className="font-inter" style={{ fontSize: 12, color: '#aaa', textAlign: 'center', marginTop: 8 }}>
+                  <p className="font-inter" style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center', marginTop: 8 }}>
                     Select exactly {runDaysPerWeek} days to continue
                   </p>
                 )}
@@ -701,18 +701,19 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
                 {/* Age stepper */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label className="font-inter" style={{ fontSize: 14, color: '#aaa', width: 80 }}>
+                  <label className="font-inter" style={{ fontSize: 14, color: 'var(--color-muted)', width: 80 }}>
                     Age
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <button
+                      aria-label="Decrease age"
                       style={{
                         width: 36, height: 36,
                         borderRadius: '50%',
-                        border: '1px solid rgba(0,0,0,0.08)',
+                        border: '1px solid var(--color-border)',
                         background: '#fff',
                         fontSize: 18,
-                        color: '#0d0d0d',
+                        color: 'var(--color-text)',
                         cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: 0,
@@ -721,17 +722,18 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     >
                       −
                     </button>
-                    <span className="font-mono" style={{ fontSize: 20, color: '#0d0d0d', width: 48, textAlign: 'center' }}>
+                    <span className="font-mono" style={{ fontSize: 20, color: 'var(--color-text)', width: 48, textAlign: 'center' }}>
                       {age}
                     </span>
                     <button
+                      aria-label="Increase age"
                       style={{
                         width: 36, height: 36,
                         borderRadius: '50%',
-                        border: '1px solid rgba(0,0,0,0.08)',
+                        border: '1px solid var(--color-border)',
                         background: '#fff',
                         fontSize: 18,
-                        color: '#0d0d0d',
+                        color: 'var(--color-text)',
                         cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: 0,
@@ -754,12 +756,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         textAlign: 'center',
                         flex: 1,
                         border: sex === opt.key
-                          ? '2px solid #0d0d0d'
-                          : '1px solid rgba(0,0,0,0.08)',
+                          ? '2px solid var(--color-text)'
+                          : '1px solid var(--color-border)',
                       }}
                       onClick={() => { haptic('selection'); setSex(opt.key) }}
                     >
-                      <p className="font-inter" style={{ fontWeight: 600, fontSize: 14, color: '#0d0d0d', margin: 0 }}>
+                      <p className="font-inter" style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-text)', margin: 0 }}>
                         {opt.title}
                       </p>
                     </div>
@@ -801,11 +803,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <p style={{ ...logoBaseStyle, fontSize: 24, marginBottom: 0 }}>Marathon Tracker</p>
               <h2
                 className="font-inter"
-                style={{ fontWeight: 600, fontSize: 24, color: '#0d0d0d', marginBottom: 4, marginTop: 32 }}
+                style={{ fontWeight: 600, fontSize: 24, color: 'var(--color-text)', marginBottom: 4, marginTop: 32 }}
               >
                 You're all set.
               </h2>
-              <p className="font-inter" style={{ fontSize: 14, color: '#aaa', marginTop: 0, marginBottom: 24 }}>
+              <p className="font-inter" style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 0, marginBottom: 24 }}>
                 Here's your training plan
               </p>
 
@@ -834,8 +836,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   },
                 ].map((row) => (
                   <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span className="font-inter" style={{ fontSize: 12, color: '#aaa' }}>{row.label}</span>
-                    <span className="font-inter" style={{ fontSize: 12, color: '#0d0d0d' }}>{row.value}</span>
+                    <span className="font-inter" style={{ fontSize: 12, color: 'var(--color-muted)' }}>{row.label}</span>
+                    <span className="font-inter" style={{ fontSize: 12, color: 'var(--color-text)' }}>{row.value}</span>
                   </div>
                 ))}
               </div>

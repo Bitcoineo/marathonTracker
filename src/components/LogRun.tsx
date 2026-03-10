@@ -1,11 +1,12 @@
-import { useState, useRef, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { getRunTargets, getRunTypeInfo } from '../data/trainingPlan'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import { DAY_NAMES } from '../utils/dateHelpers'
 import type { RunEntry } from '../types'
 import { haptic } from '../utils/haptics'
+import RunTypeBadge from './ui/RunTypeBadge'
 const FEELS = ['😫', '😓', '😐', '😊', '🔥']
 const STEP = 0.5
 const MIN = 0.5
@@ -23,6 +24,7 @@ interface LogRunProps {
 
 export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDelete, onClose }: LogRunProps) {
   const isMobile = useWindowWidth() < MOBILE_BREAKPOINT
+  const reducedMotion = useReducedMotion()
 
   const targets = getRunTargets(week)
   const runTarget = targets[dayIndex] ?? { distance: 0, type: 'easy' as const }
@@ -31,7 +33,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
   const [distance, setDistance] = useState(existingRun?.distance ?? target)
   const [feel, setFeel] = useState(existingRun?.feel ?? '')
 
-
+  const sheetRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval>>(null)
 
@@ -72,6 +74,31 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
     })
   }
 
+  useEffect(() => {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    const focusable = sheet.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusable.length > 0) focusable[0].focus()
+
+    function trap(e: KeyboardEvent) {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab' || focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', trap)
+    return () => document.removeEventListener('keydown', trap)
+  }, [onClose])
+
   const btnSize = isMobile ? 36 : 44
 
   return (
@@ -83,10 +110,13 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={() => { haptic('light'); onClose() }}
+        aria-hidden="true"
+        transition={reducedMotion ? { duration: 0 } : undefined}
       />
 
       {/* Sheet */}
       <motion.div
+        ref={sheetRef}
         className="fixed bottom-0 left-0 right-0 bg-white z-50"
         style={{
           borderRadius: '20px 20px 0 0',
@@ -98,29 +128,21 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        transition={reducedMotion ? { duration: 0 } : { type: 'spring', damping: 25, stiffness: 300 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Log run for ${formattedDate}`}
       >
         {/* Title */}
-        <p className="font-inter font-semibold text-[18px] text-[#0d0d0d]">
+        <p className="font-inter font-semibold text-[18px] text-text">
           {formattedDate}
         </p>
-        <p className="font-inter text-[13px] text-[#aaa]" style={{ marginBottom: 4 }}>
+        <p className="font-inter text-[13px] text-muted" style={{ marginBottom: 4 }}>
           target: {target}km
         </p>
         <div className="flex items-center gap-2 mb-2">
-          <span
-            className="font-mono"
-            style={{
-              fontSize: 10,
-              color: typeInfo.color,
-              backgroundColor: `${typeInfo.color}1a`,
-              padding: '2px 6px',
-              borderRadius: 4,
-            }}
-          >
-            {typeInfo.label}
-          </span>
-          <span className="font-inter text-[12px] text-[#aaa]">
+          <RunTypeBadge type={runTarget.type} />
+          <span className="font-inter text-[12px] text-muted">
             {typeInfo.desc}
           </span>
         </div>
@@ -133,34 +155,38 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
           <div className="flex items-center gap-6">
             <button
               className="flex items-center justify-center rounded-full bg-transparent cursor-pointer select-none"
-              style={{ width: btnSize, height: btnSize, border: '1px solid rgba(0,0,0,0.1)' }}
+              style={{ width: btnSize, height: btnSize, border: '1px solid var(--color-border)' }}
               onPointerDown={() => startHold(-STEP)}
               onPointerUp={stopHold}
               onPointerLeave={stopHold}
+              aria-label="Decrease distance"
             >
-              <span className="font-inter font-light text-[32px] text-[#aaa] leading-none">
+              <span className="font-inter font-light text-[32px] text-muted leading-none">
                 −
               </span>
             </button>
             <span
-              className="font-mono text-[#0d0d0d] min-w-[80px] text-center leading-none"
+              className="font-mono text-text min-w-[80px] text-center leading-none"
               style={{ fontSize: isMobile ? 44 : 64 }}
+              aria-live="polite"
+              role="status"
             >
               {distance % 1 === 0 ? distance : distance.toFixed(1)}
             </span>
             <button
               className="flex items-center justify-center rounded-full bg-transparent cursor-pointer select-none"
-              style={{ width: btnSize, height: btnSize, border: '1px solid rgba(0,0,0,0.1)' }}
+              style={{ width: btnSize, height: btnSize, border: '1px solid var(--color-border)' }}
               onPointerDown={() => startHold(STEP)}
               onPointerUp={stopHold}
               onPointerLeave={stopHold}
+              aria-label="Increase distance"
             >
-              <span className="font-inter font-light text-[32px] text-[#aaa] leading-none">
+              <span className="font-inter font-light text-[32px] text-muted leading-none">
                 +
               </span>
             </button>
           </div>
-          <span className="font-inter text-[16px] text-[#aaa] mt-1">km</span>
+          <span className="font-inter text-[16px] text-muted mt-1">km</span>
         </div>
 
         {/* Feel */}
@@ -171,6 +197,8 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
               <div key={emoji} className="flex flex-col items-center">
                 <button
                   onClick={() => { haptic('selection'); setFeel(selected ? '' : emoji) }}
+                  aria-label={emoji === '😫' ? 'Terrible' : emoji === '😓' ? 'Hard' : emoji === '😐' ? 'Okay' : emoji === '😊' ? 'Good' : 'Amazing'}
+                  aria-pressed={selected}
                   className="cursor-pointer bg-transparent border-none p-1"
                   style={{
                     fontSize: isMobile ? 24 : 28,
@@ -185,7 +213,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
                 {selected && (
                   <span
                     className="rounded-full mt-1"
-                    style={{ width: 4, height: 4, backgroundColor: '#00c86e' }}
+                    style={{ width: 4, height: 4, backgroundColor: 'var(--color-green)' }}
                   />
                 )}
               </div>
@@ -197,7 +225,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         {existingRun && onDelete && (
           <button
             onClick={() => { haptic('heavy'); onDelete(existingRun.id) }}
-            className="w-full font-inter text-[13px] font-medium text-[#999] bg-transparent border-none cursor-pointer mb-3"
+            className="w-full font-inter text-[13px] font-medium text-muted bg-transparent border-none cursor-pointer mb-3"
             style={{ padding: '12px 0', textAlign: 'center' }}
           >
             Delete run
@@ -207,7 +235,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         {/* Save */}
         <button
           onClick={handleSave}
-          className={`w-full bg-[#0d0d0d] text-white font-inter font-semibold text-[15px] rounded-xl cursor-pointer border-none ${existingRun ? '' : 'mt-6'}`}
+          className={`w-full bg-text text-white font-inter font-semibold text-[15px] rounded-xl cursor-pointer border-none ${existingRun ? '' : 'mt-6'}`}
           style={{ padding: isMobile ? '14px 0' : '16px 0' }}
         >
           {existingRun ? 'Update run' : 'Save run'}

@@ -6,9 +6,17 @@
   --color-bg: #f0ede8;
   --color-green: #00c86e;
   --color-text: #0d0d0d;
-  --color-muted: #aaaaaa;
+  --color-muted: #888888;
+  --color-muted-light: #aaaaaa;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-border-green: rgba(0, 200, 110, 0.35);
+  --color-border-green-strong: rgba(0, 200, 110, 0.4);
+  --color-divider: rgba(0, 0, 0, 0.05);
+  --color-divider-light: rgba(0, 0, 0, 0.06);
   --font-inter: 'Inter', sans-serif;
   --font-mono: 'DM Mono', monospace;
+  --font-barlow: 'Barlow Condensed', sans-serif;
 }
 
 html, body {
@@ -60,4 +68,14 @@ body {
 
 .run-card:active {
   transform: scale(0.97);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

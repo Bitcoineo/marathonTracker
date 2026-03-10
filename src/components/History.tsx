@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   getCurrentWeek,
   getWeekTarget,
@@ -7,10 +6,12 @@ import {
   getRunTargets,
   getTotalWeeks,
 } from '../data/trainingPlan'
-import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { haptic } from '../utils/haptics'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import Footer from './Footer'
+import StatsRow from './ui/StatsRow'
+import RunTypeBadge from './ui/RunTypeBadge'
+import ExpandableSection from './ui/ExpandableSection'
 import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
 import { RUNS_KEY } from '../utils/storage'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
@@ -55,15 +56,15 @@ function WeekChart({ data, isMobile }: { data: ChartPoint[]; isMobile: boolean }
 
   return (
     <div ref={containerRef} className="mb-8" style={{ position: 'relative' }}>
-      <p className="font-mono text-[11px] text-[#aaa] uppercase tracking-[0.1em] mb-4">
+      <p className="font-mono text-[11px] text-muted uppercase tracking-[0.1em] mb-4">
         Km Per Week
       </p>
-      <svg width={width} height={H} style={{ display: 'block', overflow: 'visible' }}>
+      <svg width={width} height={H} style={{ display: 'block', overflow: 'visible' }} role="img" aria-label="Weekly kilometers chart">
         <polyline fill="none" stroke="#ccc" strokeWidth={1.5} strokeDasharray="4 4" points={targetPts} />
-        <polyline fill="none" stroke="#00c86e" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" points={loggedPts} />
+        <polyline fill="none" stroke="var(--color-green)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" points={loggedPts} />
         {data.map((d, i) => (
           <g key={i}>
-            <circle cx={toX(i)} cy={toY(d.logged)} r={3.5} fill="#00c86e" />
+            <circle cx={toX(i)} cy={toY(d.logged)} r={3.5} fill="var(--color-green)" />
             <circle cx={toX(i)} cy={toY(d.logged)} r={14} fill="transparent"
               onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}
               onTouchStart={() => { haptic('light'); setHoveredPoint(i) }} onTouchEnd={() => setHoveredPoint(null)}
@@ -72,7 +73,7 @@ function WeekChart({ data, isMobile }: { data: ChartPoint[]; isMobile: boolean }
         ))}
         {data.map((d, i) => (
           <text key={i} x={toX(i)} y={H - 6} textAnchor="middle"
-            fontSize="11" fontFamily="Inter, system-ui, sans-serif" fill="#aaa">
+            fontSize="11" fontFamily="Inter, system-ui, sans-serif" fill="var(--color-muted)">
             {d.name}
           </text>
         ))}
@@ -94,8 +95,8 @@ function WeekChart({ data, isMobile }: { data: ChartPoint[]; isMobile: boolean }
           pointerEvents: 'none',
           zIndex: 10,
         }}>
-          <span style={{ color: '#00c86e', fontWeight: 600 }}>{data[hoveredPoint].logged}km</span>
-          <span style={{ color: '#aaa' }}> / {data[hoveredPoint].target}km</span>
+          <span style={{ color: 'var(--color-green)', fontWeight: 600 }}>{data[hoveredPoint].logged}km</span>
+          <span style={{ color: 'var(--color-muted)' }}> / {data[hoveredPoint].target}km</span>
         </div>
       )}
     </div>
@@ -171,31 +172,8 @@ export default function History({ onEdit }: HistoryProps) {
     <div style={{ maxWidth: 640, margin: '0 auto', width: '100%', padding: isMobile ? '0 24px' : '0' }}>
     <div className="pb-8">
       {/* Stats Row */}
-      <div className="flex max-w-[360px] w-full mx-auto mb-6">
-        {historyStats.map(({ value, label }, i) => (
-          <div
-            key={label}
-            className="flex-1 flex flex-col items-center"
-            style={{
-              minWidth: 0,
-              overflow: 'hidden',
-              ...(i < historyStats.length - 1 ? { borderRight: '1px solid rgba(0,0,0,0.06)' } : {}),
-            }}
-          >
-            <span
-              className="font-inter font-bold text-text leading-none"
-              style={{ fontSize: 24 }}
-            >
-              {value}
-            </span>
-            <span
-              className="font-mono text-muted uppercase tracking-[0.1em] mt-1"
-              style={{ fontSize: 10 }}
-            >
-              {label}
-            </span>
-          </div>
-        ))}
+      <div className="mb-6">
+        <StatsRow stats={historyStats} valueFontSize={24} />
       </div>
 
       {/* Chart */}
@@ -220,15 +198,20 @@ export default function History({ onEdit }: HistoryProps) {
               className="flex items-center justify-between cursor-pointer"
               style={{
                 padding: '12px 0',
-                borderBottom: !isLast ? '1px solid rgba(0,0,0,0.05)' : undefined,
+                borderBottom: !isLast ? '1px solid var(--color-divider)' : undefined,
               }}
+              role="button"
+              tabIndex={0}
+              aria-expanded={isExpanded}
+              aria-controls={`history-week-${w}`}
               onClick={() => { haptic('light'); setExpanded(isExpanded ? null : w) }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); haptic('light'); setExpanded(isExpanded ? null : w) } }}
             >
               <div>
-                <p className="font-inter font-semibold text-[15px] text-[#0d0d0d]">
+                <p className="font-inter font-semibold text-[15px] text-text">
                   Week {w}
                 </p>
-                <p className="font-inter text-[12px] text-[#aaa]">
+                <p className="font-inter text-[12px] text-muted">
                   {formatShortDate(weekDates[0])} – {formatShortDate(weekDates[weekDates.length - 1])}
                 </p>
               </div>
@@ -245,8 +228,8 @@ export default function History({ onEdit }: HistoryProps) {
                         style={{
                           width: dotSize,
                           height: dotSize,
-                          backgroundColor: logged ? '#00c86e' : 'transparent',
-                          border: logged ? 'none' : '1.5px solid rgba(0,0,0,0.15)',
+                          backgroundColor: logged ? 'var(--color-green)' : 'transparent',
+                          border: logged ? 'none' : '1.5px solid var(--color-border-strong)',
                         }}
                       />
                     )
@@ -254,22 +237,14 @@ export default function History({ onEdit }: HistoryProps) {
                 </div>
                 <span
                   className="font-mono font-bold text-[14px]"
-                  style={{ color: completed ? '#00c86e' : '#aaa', fontVariantNumeric: 'tabular-nums' }}
+                  style={{ color: completed ? 'var(--color-green)' : 'var(--color-muted)', fontVariantNumeric: 'tabular-nums' }}
                 >
                   {Math.round(totalLogged * 10) / 10} / {weekTarget}km
                 </span>
               </div>
             </div>
 
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
+            <ExpandableSection isExpanded={isExpanded} ariaId={`history-week-${w}`}>
                   <div className="pl-4 pb-3">
                     {(() => {
                       const todayMidnight = new Date()
@@ -283,21 +258,22 @@ export default function History({ onEdit }: HistoryProps) {
                         const loggedRun = runsByDate.get(dateKey)
                         const target = runTargets[idx]
                         const isPast = date < todayMidnight
-                        const style = target ? getRunTypeStyle(target.type) : null
-
                         return (
                           <div
                             key={dateKey}
                             className={`flex items-center gap-2 rounded-lg${loggedRun ? ' cursor-pointer hover:bg-black/[0.03]' : ''}`}
                             style={{ padding: '6px 8px', margin: '0 -8px' }}
+                            role={loggedRun ? 'button' : undefined}
+                            tabIndex={loggedRun ? 0 : undefined}
                             onClick={loggedRun ? () => { haptic('medium'); onEdit(loggedRun) } : undefined}
+                            onKeyDown={loggedRun ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); haptic('medium'); onEdit(loggedRun) } } : undefined}
                           >
-                            <span className="font-inter text-[12px] text-[#aaa]" style={{ minWidth: 28 }}>
+                            <span className="font-inter text-[12px] text-muted" style={{ minWidth: 28 }}>
                               {DAY_NAMES[date.getDay()]}
                             </span>
                             {loggedRun ? (
                               <>
-                                <span className="font-inter text-[13px] text-[#00c86e] font-medium">
+                                <span className="font-inter text-[13px] text-green font-medium">
                                   ✓ {loggedRun.distance}km
                                 </span>
                                 {loggedRun.feel && (
@@ -305,44 +281,27 @@ export default function History({ onEdit }: HistoryProps) {
                                 )}
                               </>
                             ) : isPast ? (
-                              <span className="font-inter text-[13px] text-[#aaa]">
+                              <span className="font-inter text-[13px] text-muted">
                                 missed
                               </span>
                             ) : (
-                              <span className="font-inter text-[13px] text-[#aaa]">
+                              <span className="font-inter text-[13px] text-muted">
                                 {target?.distance ?? 0}km
                               </span>
                             )}
-                            {style && (
-                              <span
-                                className="font-mono"
-                                style={{
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                  color: style.color,
-                                  backgroundColor: style.background,
-                                  border: style.border,
-                                  padding: '2px 6px',
-                                  borderRadius: 4,
-                                }}
-                              >
-                                {style.label}
-                              </span>
-                            )}
+                            {target && <RunTypeBadge type={target.type} />}
                           </div>
                         )
                       })
                     })()}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </ExpandableSection>
           </div>
         )
       })}
 
       {runs.length === 0 && (
-        <p className="font-inter text-[14px] text-[#aaa] text-center py-8">
+        <p className="font-inter text-[14px] text-muted text-center py-8" role="status">
           No runs logged yet — start training to see your history
         </p>
       )}

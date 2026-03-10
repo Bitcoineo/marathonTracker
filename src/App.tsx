@@ -134,29 +134,35 @@ function App() {
     >
       {/* Top Bar */}
       <div className="w-full flex items-center" style={{ justifyContent: 'center' }}>
-        <p
+        <button
           onClick={() => { switchTab('Now'); setViewingWeek(currentWeek) }}
+          aria-label="Marathon Tracker — go to current week"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 800,
             fontStyle: 'italic',
             fontSize: isMobile ? 22 : 24,
             letterSpacing: '-0.02em',
-            color: '#0d0d0d',
+            color: 'var(--color-text)',
             textTransform: 'uppercase' as const,
-            cursor: 'pointer',
             textAlign: 'center',
             width: '100%',
             display: 'block',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
           }}
         >
           marathon tracker
-        </p>
+        </button>
       </div>
 
       {/* Tabs */}
       <div
         className="flex py-4"
+        role="tablist"
+        aria-label="Main navigation"
         style={{
           justifyContent: 'center',
           gap: 32,
@@ -169,11 +175,14 @@ function App() {
           <button
             key={tab}
             onClick={() => switchTab(tab)}
+            role="tab"
+            aria-selected={activeTab === tab}
+            id={`tab-${tab}`}
             className="font-inter bg-transparent border-none cursor-pointer outline-none"
             style={{
               fontSize: 13,
               fontWeight: activeTab === tab ? 600 : 400,
-              color: activeTab === tab ? '#0d0d0d' : '#aaa',
+              color: activeTab === tab ? 'var(--color-text)' : 'var(--color-muted)',
               minHeight: isMobile ? 44 : undefined,
               display: 'flex',
               flexDirection: 'column',
@@ -187,7 +196,7 @@ function App() {
                 display: 'block',
                 width: 24,
                 height: 2,
-                background: '#0d0d0d',
+                background: 'var(--color-text)',
                 borderRadius: 1,
                 marginTop: 4,
               }} />
@@ -198,6 +207,7 @@ function App() {
 
       {/* Swipe hint */}
       <div
+        aria-hidden="true"
         className="font-inter"
         style={{
           textAlign: 'center',
@@ -238,6 +248,9 @@ function App() {
       >
         <div
           key={activeTab}
+          role="tabpanel"
+          id={`panel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
           className={slideDirection.current === 'right' ? 'slide-from-right' : 'slide-from-left'}
           style={{ height: '100%' }}
         >

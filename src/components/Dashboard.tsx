@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import Badges from './Badges'
+import StatsRow from './ui/StatsRow'
+import RunTypeBadge from './ui/RunTypeBadge'
 import {
   getCurrentWeek,
   getDaysRemaining,
@@ -8,7 +10,6 @@ import {
   getRunTypeInfo,
   getTotalWeeks,
 } from '../data/trainingPlan'
-import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { DAY_NAMES, formatShortDate, isToday, toDateKey } from '../utils/dateHelpers'
 import { RUN_TOOLTIP_KEY } from '../utils/storage'
 import { burstConfetti } from '../utils/confetti'
@@ -105,6 +106,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <button
             className="font-inter"
+            aria-label="Previous week"
             onClick={() => { haptic('light'); onChangeWeek(viewingWeek - 1) }}
             style={{
               background: 'none',
@@ -117,7 +119,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
               justifyContent: 'center',
               fontSize: 22,
               fontWeight: 300,
-              color: '#0d0d0d',
+              color: 'var(--color-text)',
               cursor: 'pointer',
               visibility: viewingWeek <= 1 ? 'hidden' : 'visible',
             }}
@@ -126,12 +128,13 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
           </button>
           <p
             className="font-inter text-center"
-            style={{ fontSize: 14, fontWeight: 600, color: '#888', margin: 0, minWidth: 120, textAlign: 'center' }}
+            style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', margin: 0, minWidth: 120, textAlign: 'center' }}
           >
             Week {viewingWeek} of {getTotalWeeks()}
           </p>
           <button
             className="font-inter"
+            aria-label="Next week"
             onClick={() => { haptic('light'); onChangeWeek(viewingWeek + 1) }}
             style={{
               background: 'none',
@@ -144,7 +147,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
               justifyContent: 'center',
               fontSize: 22,
               fontWeight: 300,
-              color: '#0d0d0d',
+              color: 'var(--color-text)',
               cursor: 'pointer',
               visibility: viewingWeek >= getTotalWeeks() ? 'hidden' : 'visible',
             }}
@@ -152,13 +155,16 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             ›
           </button>
         </div>
-        <div
+        <button
           className="font-inter"
+          aria-label="Go to current week"
           style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
             fontSize: 11,
             fontWeight: 500,
-            color: '#aaa',
-            cursor: 'pointer',
+            color: 'var(--color-muted)',
             marginTop: 4,
             opacity: viewingWeek !== getCurrentWeek() ? 1 : 0,
             transition: 'opacity 0.2s',
@@ -167,14 +173,14 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
           onClick={() => { haptic('light'); onChangeWeek(getCurrentWeek()) }}
         >
           Today →
-        </div>
+        </button>
       </div>
 
       {/* Progress Ring */}
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Week progress: ${Math.round(progress * 100)}% complete, ${Math.round(kmLogged * 10) / 10} of ${weekTarget} kilometers`}>
           <defs>
             <filter id="glow">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00c86e" />
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="var(--color-green)" />
             </filter>
           </defs>
           <circle
@@ -182,7 +188,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             cy={center}
             r={radius}
             fill="none"
-            stroke="rgba(0,0,0,0.06)"
+            stroke="var(--color-divider-light)"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -190,7 +196,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             cy={center}
             r={radius}
             fill="none"
-            stroke="#00c86e"
+            stroke="var(--color-green)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -215,10 +221,10 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                 fontFamily: "'Inter', sans-serif",
               }}
             >
-              <span style={{ fontSize: 52, fontWeight: 700, color: '#0d0d0d', lineHeight: 1 }}>
+              <span style={{ fontSize: 52, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>
                 {Math.round(kmLogged * 10) / 10}
               </span>
-              <span style={{ fontSize: 14, fontWeight: 400, color: '#aaa', marginTop: 2 }}>
+              <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--color-muted)', marginTop: 2 }}>
                 / {weekTarget}km
               </span>
             </div>
@@ -226,40 +232,13 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
         </svg>
 
         {/* Stats Row */}
-        <div className="flex max-w-[360px] w-full">
-          {stats.map(({ value, label }, i) => (
-            <div
-              key={label}
-              className="flex-1 flex flex-col items-center"
-              style={{
-                minWidth: 0,
-                overflow: 'hidden',
-                ...(i < stats.length - 1 ? { borderRight: '1px solid rgba(0,0,0,0.06)' } : {}),
-              }}
-            >
-              <span
-                className="font-inter font-bold text-text leading-none"
-                style={{
-                  fontSize: 28,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {value}
-              </span>
-              <span
-                className="font-mono text-muted uppercase tracking-[0.1em] mt-1"
-                style={{ fontSize: 10 }}
-              >
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
+        <StatsRow stats={stats} valueFontSize={28} />
 
         {/* This Week */}
         <div style={{ position: 'relative' }} onClickCapture={showTooltip ? dismissTooltip : undefined}>
           <div
+            role="tooltip"
+            aria-hidden={!showTooltip}
             style={{
               position: 'absolute',
               bottom: '100%',
@@ -279,7 +258,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
               className="font-inter"
               style={{
                 background: 'white',
-                color: '#aaa',
+                color: 'var(--color-muted)',
                 fontSize: 12,
                 fontWeight: 400,
                 padding: '10px 14px',
@@ -326,24 +305,28 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                 <div
                   key={date.toISOString()}
                   className="flex flex-col items-center cursor-pointer run-card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${DAY_NAMES[date.getDay()]} ${formatShortDate(date)}, ${target.distance}km ${completed ? 'completed' : ''}`}
                   style={{
                     flex: 1,
                     minWidth: 0,
                     minHeight: 100,
                     padding: cardPadding,
                     border: completed
-                      ? '1.5px solid rgba(0,200,110,0.35)'
+                      ? '1.5px solid var(--color-border-green)'
                       : today
-                        ? '1.5px dashed rgba(0,200,110,0.4)'
-                        : '1.5px dashed rgba(0,0,0,0.15)',
+                        ? '1.5px dashed var(--color-border-green-strong)'
+                        : '1.5px dashed var(--color-border-strong)',
                     borderRadius: 10,
                     background: 'white',
                     transition: 'transform 0.1s',
                   }}
                   onClick={() => { haptic('medium'); onOpenLog(date, index, viewingWeek) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); haptic('medium'); onOpenLog(date, index, viewingWeek) } }}
                 >
                   {completed ? (
-                    <span style={{ fontSize: 11, color: '#00c86e', marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-green)', marginBottom: 4 }}>
                       ✓
                     </span>
                   ) : (
@@ -351,7 +334,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                   )}
                   <p
                     className="font-inter"
-                    style={{ fontSize: fonts.day, fontWeight: 700, color: completed ? '#00c86e' : '#0d0d0d' }}
+                    style={{ fontSize: fonts.day, fontWeight: 700, color: completed ? 'var(--color-green)' : 'var(--color-text)' }}
                   >
                     {DAY_NAMES[date.getDay()]}
                   </p>
@@ -360,34 +343,20 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                   </p>
                   <p
                     className="font-inter font-bold mt-1"
-                    style={{ fontSize: fonts.km, color: completed ? '#00c86e' : '#0d0d0d' }}
+                    style={{ fontSize: fonts.km, color: completed ? 'var(--color-green)' : 'var(--color-text)' }}
                   >
                     {completed ? `${existingRun.distance}km` : `${target.distance}km`}
                   </p>
                   {(() => {
                     const info = getRunTypeInfo(target.type)
-                    const style = getRunTypeStyle(target.type)
                     const hr = target.hrZone ?? info.hr
                     return (
                       <>
-                        <span
-                          className="font-mono mt-1"
-                          style={{
-                            fontSize: fonts.tag,
-                            fontWeight: 600,
-                            color: style.color,
-                            backgroundColor: style.background,
-                            border: style.border,
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                          }}
-                        >
-                          {style.label}
-                        </span>
+                        <RunTypeBadge type={target.type} fontSize={fonts.tag} />
                         {fonts.bpm > 0 && (
                           <span
                             className="font-mono"
-                            style={{ fontSize: fonts.bpm, color: '#aaa', marginTop: 2, textAlign: 'center' }}
+                            style={{ fontSize: fonts.bpm, color: 'var(--color-muted)', marginTop: 2, textAlign: 'center' }}
                           >
                             {hr.min}–{hr.max} bpm
                           </span>

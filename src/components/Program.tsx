@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { haptic } from '../utils/haptics'
 import {
   getCurrentWeek,
@@ -12,10 +11,11 @@ import {
   getWeekIsStepBack,
   getRaceDate,
 } from '../data/trainingPlan'
-import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import type { RunEntry } from '../types'
 import Footer from './Footer'
+import RunTypeBadge from './ui/RunTypeBadge'
+import ExpandableSection from './ui/ExpandableSection'
 import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
 import { PROFILE_KEY } from '../utils/storage'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
@@ -88,7 +88,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                   style={{
                     fontSize: 11,
                     fontWeight: 500,
-                    color: '#aaa',
+                    color: 'var(--color-muted)',
                     letterSpacing: '0.1em',
                   }}
                 >
@@ -107,18 +107,23 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
             {/* Week row */}
             <div
               className="cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-expanded={isExpanded}
+              aria-controls={`program-week-${w}`}
               style={{
                 opacity: isPast && !isExpanded ? 0.4 : 1,
-                borderBottom: !isLast ? '1px solid rgba(0,0,0,0.05)' : undefined,
-                borderLeft: isViewed ? '3px solid #00c86e' : '3px solid transparent',
+                borderBottom: !isLast ? '1px solid var(--color-divider)' : undefined,
+                borderLeft: isViewed ? '3px solid var(--color-green)' : '3px solid transparent',
                 paddingLeft: 12,
                 paddingTop: 12,
                 paddingBottom: 12,
               }}
               onClick={() => { haptic('light'); setExpanded(isExpanded ? null : w) }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); haptic('light'); setExpanded(isExpanded ? null : w) } }}
             >
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'nowrap' }}>
-                <p className="font-inter" style={{ fontWeight: 700, fontSize: 16, color: '#0d0d0d', margin: 0, marginRight: 4 }}>
+                <p className="font-inter" style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text)', margin: 0, marginRight: 4 }}>
                   Week {w}
                 </p>
                 {phase && PHASE_COLORS[phase] && (
@@ -144,7 +149,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                     style={{
                       fontSize: 8,
                       fontWeight: 500,
-                      color: '#aaa',
+                      color: 'var(--color-muted)',
                       backgroundColor: 'rgba(0,0,0,0.04)',
                       padding: '3px 8px',
                       borderRadius: 20,
@@ -155,15 +160,15 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                     RECOVERY
                   </span>
                 )}
-                <p className="font-inter" style={{ fontWeight: 700, fontSize: 16, color: '#0d0d0d', margin: 0, marginLeft: 'auto' }}>
+                <p className="font-inter" style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text)', margin: 0, marginLeft: 'auto' }}>
                   {weekTarget}km
                 </p>
               </div>
               <div className="flex justify-between">
-                <p className="font-inter text-[12px] text-[#aaa]">
+                <p className="font-inter text-[12px] text-muted">
                   {formatShortDate(weekDates[0])} – {formatShortDate(weekDates[weekDates.length - 1])}
                 </p>
-                <p className="font-inter text-[#aaa]" style={{ fontSize: 11 }}>
+                <p className="font-inter text-muted" style={{ fontSize: 11 }}>
                   {weekDates
                     .map((d, i) => ({ day: DAY_NAMES[d.getDay()], dist: runTargets[i]?.distance ?? 0 }))
                     .filter(e => e.dist > 0)
@@ -173,15 +178,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
               </div>
             </div>
 
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
+            <ExpandableSection isExpanded={isExpanded} ariaId={`program-week-${w}`}>
                   <div className="pl-4 pb-3">
                     {weekDates.map((date, index) => {
                       const dateKey = toDateKey(date)
@@ -196,64 +193,34 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                           className="flex items-center gap-2 py-1.5"
                           style={{ flexWrap: 'wrap' }}
                         >
-                          <span className="font-inter text-[13px] text-[#0d0d0d]">
+                          <span className="font-inter text-[13px] text-text">
                             {DAY_NAMES[date.getDay()]} {formatShortDate(date)}
                           </span>
-                          <span className="font-inter text-[13px] text-[#0d0d0d]">
+                          <span className="font-inter text-[13px] text-text">
                             {target.distance}km{target.isShakeout ? ' easy' : ''}
                           </span>
                           {target.isShakeout ? (
-                            <span
-                              className="font-mono"
-                              style={{
-                                fontSize: 10,
-                                fontWeight: 600,
-                                fontStyle: 'italic',
-                                color: '#16a34a',
-                                backgroundColor: 'rgba(34,197,94,0.1)',
-                                border: '1px solid rgba(34,197,94,0.2)',
-                                padding: '2px 6px',
-                                borderRadius: 4,
-                              }}
-                            >
-                              Shakeout
-                            </span>
-                          ) : (() => {
-                            const style = getRunTypeStyle(target.type)
-                            return (
-                              <span
-                                className="font-mono"
-                                style={{
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                  color: style.color,
-                                  backgroundColor: style.background,
-                                  border: style.border,
-                                  padding: '2px 6px',
-                                  borderRadius: 4,
-                                }}
-                              >
-                                {style.label}
-                              </span>
-                            )
-                          })()}
+                            <RunTypeBadge type="easy" label="Shakeout" italic />
+                          ) : (
+                            <RunTypeBadge type={target.type} />
+                          )}
                           {!target.isShakeout && (
                             <span className="font-mono text-[11px] text-[#e11d48]">
                               ♥ {(target.hrZone ?? typeInfo.hr).min}–{(target.hrZone ?? typeInfo.hr).max}
                             </span>
                           )}
                           {target.description && (
-                            <span className="font-inter text-[11px] text-[#aaa] basis-full">
+                            <span className="font-inter text-[11px] text-muted basis-full">
                               {target.description}
                             </span>
                           )}
                           {target.isShakeout && (
-                            <span className="font-inter text-[11px] text-[#aaa] basis-full" style={{ fontStyle: 'italic' }}>
+                            <span className="font-inter text-[11px] text-muted basis-full" style={{ fontStyle: 'italic' }}>
                               The hay is in the barn.
                             </span>
                           )}
                           {loggedRun && (
-                            <span className="font-inter text-[12px] text-[#00c86e] font-medium">
+                            <span className="font-inter text-[12px] text-green font-medium">
                               ✓ {loggedRun.distance}km {loggedRun.feel}
                             </span>
                           )}
@@ -261,9 +228,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                       )
                     })}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </ExpandableSection>
           </div>
         )
       })}
@@ -327,7 +292,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                 All the early mornings. All the long runs. This is what they were for.
               </span>
             </div>
-            <p className="font-inter" style={{ fontSize: 11, color: '#aaa', textAlign: 'center', marginTop: 12 }}>
+            <p className="font-inter" style={{ fontSize: 11, color: 'var(--color-muted)', textAlign: 'center', marginTop: 12 }}>
               You've got this. Trust your training.
             </p>
           </>

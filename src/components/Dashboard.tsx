@@ -164,7 +164,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
             transition: 'opacity 0.2s',
             pointerEvents: viewingWeek !== getCurrentWeek() ? 'auto' : 'none',
           }}
-          onClick={() => onChangeWeek(getCurrentWeek())}
+          onClick={() => { haptic('light'); onChangeWeek(getCurrentWeek()) }}
         >
           Today →
         </div>

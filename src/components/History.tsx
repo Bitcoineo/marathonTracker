@@ -66,7 +66,7 @@ function WeekChart({ data, isMobile }: { data: ChartPoint[]; isMobile: boolean }
             <circle cx={toX(i)} cy={toY(d.logged)} r={3.5} fill="#00c86e" />
             <circle cx={toX(i)} cy={toY(d.logged)} r={14} fill="transparent"
               onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}
-              onTouchStart={() => setHoveredPoint(i)} onTouchEnd={() => setHoveredPoint(null)}
+              onTouchStart={() => { haptic('light'); setHoveredPoint(i) }} onTouchEnd={() => setHoveredPoint(null)}
             />
           </g>
         ))}
@@ -290,7 +290,7 @@ export default function History({ onEdit }: HistoryProps) {
                             key={dateKey}
                             className={`flex items-center gap-2 rounded-lg${loggedRun ? ' cursor-pointer hover:bg-black/[0.03]' : ''}`}
                             style={{ padding: '6px 8px', margin: '0 -8px' }}
-                            onClick={loggedRun ? () => onEdit(loggedRun) : undefined}
+                            onClick={loggedRun ? () => { haptic('medium'); onEdit(loggedRun) } : undefined}
                           >
                             <span className="font-inter text-[12px] text-[#aaa]" style={{ minWidth: 28 }}>
                               {DAY_NAMES[date.getDay()]}

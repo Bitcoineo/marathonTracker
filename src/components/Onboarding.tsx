@@ -320,7 +320,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               {alreadyStarted === true && (
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={() => { haptic('medium'); setStep(2) }}
                   className="font-inter"
                   style={continueStyle}
                 >
@@ -502,7 +502,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               {hasRaceDate === true && raceDate && (
                 <button
-                  onClick={() => setStep(3)}
+                  onClick={() => { haptic('medium'); setStep(3) }}
                   className="font-inter"
                   style={continueStyle}
                 >
@@ -511,7 +511,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               )}
 
               <button
-                onClick={() => setStep(1)}
+                onClick={() => { haptic('light'); setStep(1) }}
                 className="font-inter"
                 style={backStyle}
               >
@@ -566,7 +566,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <button
-                onClick={() => setStep(2)}
+                onClick={() => { haptic('light'); setStep(2) }}
                 className="font-inter"
                 style={backStyle}
               >
@@ -769,7 +769,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               {step4Valid && (
                 <button
-                  onClick={() => setStep(5)}
+                  onClick={() => { haptic('medium'); setStep(5) }}
                   className="font-inter"
                   style={continueStyle}
                 >
@@ -778,7 +778,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               )}
 
               <button
-                onClick={() => setStep(3)}
+                onClick={() => { haptic('light'); setStep(3) }}
                 className="font-inter"
                 style={backStyle}
               >

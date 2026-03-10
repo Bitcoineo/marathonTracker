@@ -80,7 +80,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={() => { haptic('light'); onClose() }}
       />
 
       {/* Sheet */}

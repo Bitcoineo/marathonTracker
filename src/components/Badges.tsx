@@ -137,7 +137,7 @@ export default function Badges({ runs }: BadgesProps) {
             <div
               key={badge.id}
               className="flex flex-col items-center cursor-pointer"
-              onClick={() => { haptic('light'); setSelected(badge.id) }}
+              onClick={() => { haptic('light'); setSelected(selected === badge.id ? null : badge.id) }}
             >
               <div
                 className="rounded-full flex items-center justify-center"
@@ -168,54 +168,43 @@ export default function Badges({ runs }: BadgesProps) {
         })}
       </div>
 
-      {/* Badge detail card overlay */}
+      {/* Inline badge detail card */}
       <AnimatePresence>
         {selectedBadge && (
           <motion.div
-            key="badge-overlay"
-            className="fixed inset-0 z-40 flex items-center justify-center"
-            style={{ padding: 32 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => { haptic('light'); setSelected(null) }}
+            key={selectedBadge.id}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+            style={{ marginTop: 12 }}
           >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/15" />
-
-            {/* Card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 4 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-              onClick={(e) => e.stopPropagation()}
+            <div
+              className="cursor-pointer"
+              onClick={() => { haptic('light'); setSelected(null) }}
               style={{
-                position: 'relative',
                 background: '#ffffff',
-                borderRadius: 16,
-                padding: '28px 24px 24px',
-                maxWidth: 320,
-                width: '100%',
+                borderRadius: 10,
+                border: selectedUnlocked ? '1.5px solid rgba(0,200,110,0.35)' : '1.5px dashed rgba(0,0,0,0.15)',
+                padding: '16px 20px',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 0,
+                gap: 14,
               }}
             >
-              {/* Badge circle */}
+              {/* Badge emoji */}
               <div
-                className="rounded-full flex items-center justify-center"
+                className="rounded-full flex items-center justify-center flex-shrink-0"
                 style={{
-                  width: 64,
-                  height: 64,
+                  width: 44,
+                  height: 44,
                   backgroundColor: selectedUnlocked ? '#f0ede8' : '#e8e5e0',
                 }}
               >
                 <span
                   style={{
-                    fontSize: 32,
+                    fontSize: 22,
                     filter: selectedUnlocked ? 'none' : 'grayscale(100%)',
                     opacity: selectedUnlocked ? 1 : 0.35,
                   }}
@@ -224,68 +213,42 @@ export default function Badges({ runs }: BadgesProps) {
                 </span>
               </div>
 
-              {/* Name */}
-              <p
-                className="font-inter"
-                style={{
-                  fontWeight: 700,
-                  fontSize: 16,
-                  color: '#0d0d0d',
-                  marginTop: 14,
-                  textAlign: 'center',
-                }}
-              >
-                {selectedBadge.name}
-              </p>
-
-              {/* Status pill */}
-              <div
-                style={{
-                  marginTop: 8,
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                  background: selectedUnlocked ? 'rgba(0,200,110,0.1)' : 'rgba(0,0,0,0.04)',
-                }}
-              >
+              {/* Text content */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="flex items-center gap-2">
+                  <p
+                    className="font-inter"
+                    style={{ fontWeight: 600, fontSize: 14, color: '#0d0d0d' }}
+                  >
+                    {selectedBadge.name}
+                  </p>
+                  <span
+                    className="font-mono"
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: selectedUnlocked ? '#00c86e' : '#aaa',
+                      backgroundColor: selectedUnlocked ? 'rgba(0,200,110,0.1)' : 'rgba(0,0,0,0.04)',
+                      padding: '2px 8px',
+                      borderRadius: 10,
+                    }}
+                  >
+                    {getProgress(selectedBadge.id, runs)}
+                  </span>
+                </div>
                 <p
-                  className="font-mono"
+                  className="font-inter"
                   style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: selectedUnlocked ? '#00c86e' : '#aaa',
+                    fontSize: 12,
+                    color: '#888',
+                    lineHeight: 1.4,
+                    marginTop: 4,
                   }}
                 >
-                  {getProgress(selectedBadge.id, runs)}
+                  {HOW_TO[selectedBadge.id]}
                 </p>
               </div>
-
-              {/* How to */}
-              <p
-                className="font-inter"
-                style={{
-                  fontSize: 13,
-                  fontWeight: 400,
-                  color: '#888',
-                  lineHeight: 1.5,
-                  textAlign: 'center',
-                  marginTop: 14,
-                }}
-              >
-                {HOW_TO[selectedBadge.id]}
-              </p>
-
-              {/* Dismiss hint */}
-              <p
-                className="font-inter"
-                style={{
-                  fontSize: 11,
-                  color: '#ccc',
-                  marginTop: 16,
-                }}
-              >
-                tap to close
-              </p>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

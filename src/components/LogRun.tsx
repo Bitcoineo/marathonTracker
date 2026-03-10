@@ -42,14 +42,16 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
       const next = Math.round((prev + delta) * 10) / 10
       return Math.max(MIN, Math.min(MAX, next))
     })
-    haptic('tick')
   }, [])
 
   function startHold(delta: number) {
     haptic('medium')
     adjust(delta)
     timeoutRef.current = setTimeout(() => {
-      intervalRef.current = setInterval(() => adjust(delta), 100)
+      intervalRef.current = setInterval(() => {
+        haptic('tick')
+        adjust(delta)
+      }, 100)
     }, 400)
   }
 

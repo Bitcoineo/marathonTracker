@@ -12,6 +12,7 @@ import { getRunTypeStyle } from '../utils/runTypeStyles'
 import { DAY_NAMES, formatShortDate, isToday, toDateKey } from '../utils/dateHelpers'
 import { RUN_TOOLTIP_KEY } from '../utils/storage'
 import { burstConfetti } from '../utils/confetti'
+import { haptic } from '../utils/haptics'
 import type { RunEntry } from '../types'
 
 interface DashboardProps {
@@ -49,6 +50,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
     const key = `confetti-w${viewingWeek}`
     if (localStorage.getItem(key)) return
     localStorage.setItem(key, 'true')
+    haptic('success')
     burstConfetti()
   }, [kmLogged, weekTarget, viewingWeek])
 
@@ -103,7 +105,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <button
             className="font-inter"
-            onClick={() => onChangeWeek(viewingWeek - 1)}
+            onClick={() => { haptic('light'); onChangeWeek(viewingWeek - 1) }}
             style={{
               background: 'none',
               border: 'none',
@@ -130,7 +132,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
           </p>
           <button
             className="font-inter"
-            onClick={() => onChangeWeek(viewingWeek + 1)}
+            onClick={() => { haptic('light'); onChangeWeek(viewingWeek + 1) }}
             style={{
               background: 'none',
               border: 'none',
@@ -338,7 +340,7 @@ export default function Dashboard({ runs, viewingWeek, onOpenLog, onChangeWeek }
                     background: 'white',
                     transition: 'transform 0.1s',
                   }}
-                  onClick={() => onOpenLog(date, index, viewingWeek)}
+                  onClick={() => { haptic('medium'); onOpenLog(date, index, viewingWeek) }}
                 >
                   {completed ? (
                     <span style={{ fontSize: 11, color: '#00c86e', marginBottom: 4 }}>

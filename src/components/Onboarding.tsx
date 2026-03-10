@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { generateTrainingPlan, computeMaxHR } from '../data/generatePlan'
 import type { Experience, Sex, PrepWeeksOption } from '../types'
 import { clearPlanCache } from '../data/trainingPlan'
+import { haptic } from '../utils/haptics'
 import { PLAN_KEY, ONBOARDING_KEY, PROFILE_KEY } from '../utils/storage'
 
 interface OnboardingProps {
@@ -217,7 +218,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 Train smart. Run far.
               </p>
               <button
-                onClick={() => setStep(1)}
+                onClick={() => { haptic('medium'); setStep(1) }}
                 className="font-inter"
                 style={{
                   background: '#0d0d0d',
@@ -264,6 +265,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                       : '1px solid rgba(0,0,0,0.08)',
                   }}
                   onClick={() => {
+                    haptic('selection')
                     setAlreadyStarted(false)
                     setStartDate(todayISO)
                     setStep(2)
@@ -287,7 +289,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     cursor: alreadyStarted === true ? 'default' : 'pointer',
                   }}
                   onClick={() => {
-                    if (alreadyStarted !== true) setAlreadyStarted(true)
+                    if (alreadyStarted !== true) { haptic('selection'); setAlreadyStarted(true) }
                   }}
                 >
                   <p className="font-inter" style={{ fontWeight: 600, fontSize: 15, color: '#0d0d0d', margin: 0 }}>
@@ -359,6 +361,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   }}
                   onClick={() => {
                     if (hasRaceDate !== true) {
+                      haptic('selection')
                       setHasRaceDate(true)
                       setPrepWeeks(null)
                     }
@@ -425,6 +428,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   }}
                   onClick={() => {
                     if (hasRaceDate !== false) {
+                      haptic('selection')
                       setHasRaceDate(false)
                       setRaceDate('')
                     }
@@ -476,6 +480,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                               }}
                               onClick={(e) => {
                                 e.stopPropagation()
+                                haptic('medium')
                                 setPrepWeeks(w)
                                 setStep(3)
                               }}
@@ -545,6 +550,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         : '1px solid rgba(0,0,0,0.08)',
                     }}
                     onClick={() => {
+                      haptic('medium')
                       setExperience(opt.key)
                       setStep(4)
                     }}
@@ -623,6 +629,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         minWidth: 56,
                       }}
                       onClick={() => {
+                        haptic('selection')
                         setRunDaysPerWeek(f)
                         setSelectedDays([])
                       }}
@@ -655,6 +662,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           border: isSelected ? '2px solid #0d0d0d' : '1px solid rgba(0,0,0,0.08)',
                         }}
                         onClick={() => {
+                          haptic('selection')
                           if (isSelected) {
                             setSelectedDays(prev => prev.filter(d => d !== day))
                           } else if (selectedDays.length < runDaysPerWeek) {
@@ -709,7 +717,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: 0,
                       }}
-                      onClick={() => setAge(Math.max(16, age - 1))}
+                      onClick={() => { haptic('tick'); setAge(Math.max(16, age - 1)) }}
                     >
                       −
                     </button>
@@ -728,7 +736,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: 0,
                       }}
-                      onClick={() => setAge(Math.min(80, age + 1))}
+                      onClick={() => { haptic('tick'); setAge(Math.min(80, age + 1)) }}
                     >
                       +
                     </button>
@@ -749,7 +757,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                           ? '2px solid #0d0d0d'
                           : '1px solid rgba(0,0,0,0.08)',
                       }}
-                      onClick={() => setSex(opt.key)}
+                      onClick={() => { haptic('selection'); setSex(opt.key) }}
                     >
                       <p className="font-inter" style={{ fontWeight: 600, fontSize: 14, color: '#0d0d0d', margin: 0 }}>
                         {opt.title}
@@ -833,7 +841,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <button
-                onClick={() => handleComplete()}
+                onClick={() => { haptic('heavy'); handleComplete() }}
                 className="font-inter"
                 style={continueStyle}
               >

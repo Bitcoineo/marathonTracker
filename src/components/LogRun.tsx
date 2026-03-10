@@ -5,6 +5,7 @@ import { useWindowWidth } from '../hooks/useWindowWidth'
 import { MOBILE_BREAKPOINT } from '../utils/breakpoints'
 import { DAY_NAMES } from '../utils/dateHelpers'
 import type { RunEntry } from '../types'
+import { haptic } from '../utils/haptics'
 const FEELS = ['😫', '😓', '😐', '😊', '🔥']
 const STEP = 0.5
 const MIN = 0.5
@@ -41,9 +42,11 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
       const next = Math.round((prev + delta) * 10) / 10
       return Math.max(MIN, Math.min(MAX, next))
     })
+    haptic('tick')
   }, [])
 
   function startHold(delta: number) {
+    haptic('medium')
     adjust(delta)
     timeoutRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => adjust(delta), 100)
@@ -57,6 +60,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
 
   function handleSave() {
     if (distance <= 0) return
+    haptic('heavy')
     onSave({
       id: existingRun?.id ?? crypto.randomUUID(),
       date: date.toISOString().split('T')[0],
@@ -164,7 +168,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
             return (
               <div key={emoji} className="flex flex-col items-center">
                 <button
-                  onClick={() => setFeel(selected ? '' : emoji)}
+                  onClick={() => { haptic('selection'); setFeel(selected ? '' : emoji) }}
                   className="cursor-pointer bg-transparent border-none p-1"
                   style={{
                     fontSize: isMobile ? 24 : 28,
@@ -190,7 +194,7 @@ export default function LogRun({ date, dayIndex, week, existingRun, onSave, onDe
         {/* Delete (edit mode only) */}
         {existingRun && onDelete && (
           <button
-            onClick={() => onDelete(existingRun.id)}
+            onClick={() => { haptic('heavy'); onDelete(existingRun.id) }}
             className="w-full font-inter text-[13px] font-medium text-[#999] bg-transparent border-none cursor-pointer mb-3"
             style={{ padding: '12px 0', textAlign: 'center' }}
           >

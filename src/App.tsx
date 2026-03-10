@@ -9,6 +9,7 @@ import { getCurrentWeek, getDayIndex } from './data/trainingPlan'
 import { useWindowWidth } from './hooks/useWindowWidth'
 import { toDateKey } from './utils/dateHelpers'
 import { RUNS_KEY, ONBOARDING_KEY, SWIPE_HINT_KEY } from './utils/storage'
+import { haptic } from './utils/haptics'
 import { MOBILE_BREAKPOINT } from './utils/breakpoints'
 import type { RunEntry } from './types'
 
@@ -51,6 +52,7 @@ function App() {
     const newIndex = TABS.indexOf(newTab)
     if (newIndex === oldIndex) return
     slideDirection.current = newIndex > oldIndex ? 'right' : 'left'
+    haptic('light')
     setActiveTab(newTab)
   }
 
@@ -228,7 +230,10 @@ function App() {
           const nextIndex = deltaX < 0
             ? Math.min(currentIndex + 1, TABS.length - 1)
             : Math.max(currentIndex - 1, 0)
-          if (nextIndex !== currentIndex) switchTab(TABS[nextIndex])
+          if (nextIndex !== currentIndex) {
+            haptic('medium')
+            switchTab(TABS[nextIndex])
+          }
         }}
       >
         <div

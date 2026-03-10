@@ -8,6 +8,7 @@ import {
   getTotalWeeks,
 } from '../data/trainingPlan'
 import { getRunTypeStyle } from '../utils/runTypeStyles'
+import { haptic } from '../utils/haptics'
 import { useWindowWidth } from '../hooks/useWindowWidth'
 import Footer from './Footer'
 import { DAY_NAMES, formatShortDate, toDateKey } from '../utils/dateHelpers'
@@ -221,7 +222,7 @@ export default function History({ onEdit }: HistoryProps) {
                 padding: '12px 0',
                 borderBottom: !isLast ? '1px solid rgba(0,0,0,0.05)' : undefined,
               }}
-              onClick={() => setExpanded(isExpanded ? null : w)}
+              onClick={() => { haptic('light'); setExpanded(isExpanded ? null : w) }}
             >
               <div>
                 <p className="font-inter font-semibold text-[15px] text-[#0d0d0d]">

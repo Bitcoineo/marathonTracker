@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { haptic } from '../utils/haptics'
 import {
   getCurrentWeek,
   getWeekTarget,
@@ -114,7 +115,7 @@ export default function Program({ runs, viewingWeek }: ProgramProps) {
                 paddingTop: 12,
                 paddingBottom: 12,
               }}
-              onClick={() => setExpanded(isExpanded ? null : w)}
+              onClick={() => { haptic('light'); setExpanded(isExpanded ? null : w) }}
             >
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'nowrap' }}>
                 <p className="font-inter" style={{ fontWeight: 700, fontSize: 16, color: '#0d0d0d', margin: 0, marginRight: 4 }}>
